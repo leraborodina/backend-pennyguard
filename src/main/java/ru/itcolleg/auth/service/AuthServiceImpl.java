@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
                 return true;
             } else {
                 // Step 7: If passwords do not match, throw an exception
-                throw new UserLoginCredentialsNotCorrect("Email or password is wrong.");
+                throw new UserLoginCredentialsNotCorrect("Password is wrong.");
             }
         } else {
             // Step 8: If user is not found, throw an exception

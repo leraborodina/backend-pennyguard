@@ -1,65 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- POM (Project Object Model) file for Maven -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- Define the project metadata -->
     <modelVersion>4.0.0</modelVersion>
+    <!-- Parent project information -->
     <parent>
+        <!-- Parent project coordinates -->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.6.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+    <!-- Project coordinates -->
     <groupId>ru.itcolleg</groupId>
     <artifactId>pennyguard-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>pennyguard-backend</name>
     <description>Demo project for Spring Boot</description>
+    <!-- Define project properties -->
     <properties>
+        <!-- Define the Java version to use -->
         <java.version>17</java.version>
     </properties>
+    <!-- Define project dependencies -->
     <dependencies>
+        <!-- Spring Boot Starter Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- Spring Boot Starter Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
+        <!-- Spring Boot DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        <!-- Microsoft SQL Server JDBC Driver -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Spring Boot Configuration Processor -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Spring Boot Starter Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- ModelMapper -->
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>2.4.4</version>
         </dependency>
+        <!-- Spring Security Crypto -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
             <version>6.1.6-SNAPSHOT</version>
         </dependency>
-
-
-        <!--JWT Token -->
+        <!-- MySQL Connector Java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+        <!-- Microsoft SQL Server JDBC Driver -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>9.4.0.jre11</version> <!-- or the latest version available -->
+        </dependency>
+        <!-- JWT (JSON Web Token) dependencies -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -87,15 +112,24 @@
             <artifactId>spring-security-web</artifactId>
             <version>6.1.6-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>1.1.0.Final</version>
+        </dependency>
     </dependencies>
 
+    <!-- Define project build configuration -->
     <build>
+        <!-- Define project build plugins -->
         <plugins>
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <!-- Configuration for the Spring Boot Maven Plugin -->
                 <configuration>
+                    <!-- Set the builder for the container image -->
                     <image>
                         <builder>paketobuildpacks/builder-jammy-base:latest</builder>
                     </image>
@@ -103,5 +137,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

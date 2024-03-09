@@ -3,19 +3,22 @@ package ru.itcolleg.auth.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.itcolleg.auth.dto.LoginRequest;
+import ru.itcolleg.auth.dto.LoginResponse;
+import ru.itcolleg.auth.service.AuthService;
+import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.user.exception.UserLoginCredentialsNotCorrect;
 import ru.itcolleg.user.exception.UserNotFoundException;
 import ru.itcolleg.user.model.User;
-import ru.itcolleg.auth.service.AuthService;
-import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.user.service.UserService;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 import java.util.Optional;
 
 /*
@@ -88,8 +91,14 @@ public class AuthRestController {
                     String token = tokenService.generateToken(optionalUser.get().getUserId());
                     userService.updateUserPublicKey(optionalUser.get(), tokenService.getEncodedPublicKey());
 
-                    // Step 6: Return the token in the response
-                    return ResponseEntity.ok(Map.of("token", token));
+
+                    LoginResponse response = new LoginResponse();
+                    response.setFirstname(optionalUser.get().getFirstname());
+                    response.setLastname(optionalUser.get().getLastname());
+                    response.setToken(token);
+
+                    // Step 6: Return response with the token
+                    return ResponseEntity.ok(response);
                 } else {
                     // Step 7: Handle the case where user information is not available
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User information not available");

@@ -3,16 +3,27 @@ spring:
   datasource:
     url: jdbc:sqlserver://LAPTOP-LJRLVS6G:1433;databaseName=pennyguard
     username: sa
+    # Database password
     password: 123
+    # JDBC driver class name for SQL Server
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  # JPA (Java Persistence API) configuration
   jpa:
-    show-sql: true
+    hibernate:
+      # Automatic DDL (Data Definition Language) generation strategy:
+      # - create: creates database schema on startup (note: this may drop existing schema)
+      ddl-auto: create
+      # Enable SQL logging for better debugging
+      show-sql: true
     properties:
+      # Hibernate dialect for SQL Server 2012
       hibernate:
-        dialect: org.hibernate.dialect.SQLServerDialect
-        ddl-auto: update
+        dialect: org.hibernate.dialect.SQLServer2012Dialect
+        # Format SQL queries for better readability
         format_sql: true
 
-# JWT (JSON Web Token) expiration time
+# Application-specific configurations
 app:
+  # JWT (JSON Web Token) expiration time in milliseconds
   jwtExpirationMs: 60000
-

@@ -7,7 +7,6 @@ public class LoginResponse {
 
     private String firstname;
     private String lastname;
-    private String email;
     private String token;
 
     /**
@@ -53,24 +52,6 @@ public class LoginResponse {
     }
 
     /**
-     * Get the user's email address.
-     *
-     * @return The email address.
-     */
-    public String getEmail() {
-        return email;
-    }
-
-    /**
-     * Set the user's email address.
-     *
-     * @param email The email address to set.
-     */
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    /**
      * Get the authentication token.
      *
      * @return The authentication token.
@@ -95,10 +76,9 @@ public class LoginResponse {
      */
     @Override
     public String toString() {
-        return "UserResponse{" +
+        return "LoginResponse{" +
                 "firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
-                ", email='" + email + '\'' +
                 ", token='" + token + '\'' +
                 '}';
     }

@@ -22,7 +22,7 @@ public class TokenServiceImpl implements TokenService {
     @Value("${app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    private KeyPair keyPair;
+    private final KeyPair keyPair;
 
     /**
      * Constructor for initializing the TokenService with a generated key pair.
@@ -66,7 +66,7 @@ public class TokenServiceImpl implements TokenService {
                 Jws<Claims> jws = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token);
                 Claims claims = jws.getBody();
 
-                // Step 3: Optionally, perform additional verification checks here based on claims
+                // Step 3: Perform additional verification checks based on claims
                 String subject = claims.getSubject();
                 // Example additional check: Ensure the subject is not empty
                 if (subject == null || subject.isEmpty()) {
@@ -74,28 +74,29 @@ public class TokenServiceImpl implements TokenService {
                     return false;
                 }
 
-                // TODO check token expiration date
+                // Step 4: Check token expiration date
+                Date expirationDate = claims.getExpiration();
+                // Token has expired
+                return expirationDate == null || !expirationDate.before(new Date());
 
-                // Step 4: Token is valid
-                return true;
+                // Step 5: Token is valid
             } catch (ExpiredJwtException e) {
-                // Step 5: Handle the case where the token has expired
+                // Step 6: Handle the case where the token has expired
                 // You might want to log or perform specific actions for expired tokens
                 return false;
             } catch (JwtException e) {
-                // Step 6: Handle general JWT exceptions
+                // Step 7: Handle general JWT exceptions
                 // This includes issues like invalid signature, invalid format, etc.
                 // You might want to log or perform specific actions for these cases
                 return false;
             }
         } catch (Exception e) {
-            // Step 7: Handle unexpected exceptions during the public key conversion
+            // Step 8: Handle unexpected exceptions during the public key conversion
             // This includes issues like invalid key format, invalid base64 encoding, etc.
             // Log or perform specific actions for unexpected exceptions
             return false;
         }
     }
-
 
     public String getEncodedPublicKey() {
         return encodePublicKey(keyPair.getPublic());
