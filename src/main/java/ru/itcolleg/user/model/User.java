@@ -25,7 +25,7 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "public_key")
+    @Column(name = "public_key", length = Integer.MAX_VALUE)
     private String publicKey;
 
     public User() {
