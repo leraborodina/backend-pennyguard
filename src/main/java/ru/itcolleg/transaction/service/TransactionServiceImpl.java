@@ -27,6 +27,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final TransactionTypeRepository transactionTypeRepository;
+
     @Autowired
     public TransactionServiceImpl(TransactionRepository transactionRepository, CategoryRepository categoryRepository, TransactionTypeRepository transactionTypeRepository) {
         this.transactionRepository = transactionRepository;
@@ -92,29 +93,27 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<TransactionDTO> getTransactionsByUserId(Long userId) {
-        Specification<Transaction> searchTransaction = Specification.where(null);
-        if (userId != null) {
-            searchTransaction = searchTransaction.and(TransactionSpecifications.hasUserIdEquals(userId));
-            // select * from transaction where userId = {userId}
+        if (userId == null) {
+            return Collections.emptyList();
         }
 
-        List<Transaction> foundTransactions = transactionRepository.findAll(searchTransaction);
+        List<Transaction> foundTransactions = transactionRepository.findTransactionsByUserId(userId);
 
-        List<TransactionDTO> transactionDTOList = new ArrayList<>();
-
-        for (Transaction transaction : foundTransactions) {
-            TransactionDTO dto = TransactionMapper.mapTransactionToTransactionDTO(transaction);
-            transactionDTOList.add(dto);
-        }
-
-        return !transactionDTOList.isEmpty()
-                ? transactionDTOList
-                : Collections.emptyList();
+        return foundTransactions.stream()
+                .map(TransactionMapper::mapTransactionToTransactionDTO)
+                .collect(Collectors.toList());
     }
+
     @Override
     public List<TransactionDTO> getAll(Double amount, String purpose, LocalDate date, String category) {
+        // TODO 1: add userId to parameters -> i cant search after transactions without userId.
+
+        // TODO 2: if userId == null than return empty list
+
         Specification<Transaction> searchQuery = Specification.where(null);
         // select * from transaction
+
+        // TODO 4: Add userId to specifications
 
         if (amount != null && amount > 0) {
             searchQuery = searchQuery.and(TransactionSpecifications.amountGreaterOrEqual(amount));
@@ -126,26 +125,21 @@ public class TransactionServiceImpl implements TransactionService {
             // select * from transaction where amount > {amount} and purpose like '%{purpose}%'
         }
 
+        // TODO 5: check data sql (Example: 16.03.2024 -> searching for 16 and 17 march, not correct)
         if (date != null) {
             searchQuery = searchQuery.and(TransactionSpecifications.dateGreaterOrEqual(date));
         }
 
+        // TODO 6: you are getting a string value from frontend. Firstly check if its true. Send category name from frontend and not categoryId.
         if (category != null && !category.isEmpty()) {
             searchQuery = searchQuery.or(TransactionSpecifications.hasCategoryEquals(category));
         }
 
-        List<Transaction> transactions = transactionRepository.findAll(searchQuery);
+        List<Transaction> foundTransactions = transactionRepository.findAll(searchQuery);
 
-        List<TransactionDTO> transactionDTOList = new ArrayList<>();
-
-        for (Transaction transaction : transactions) {
-            TransactionDTO dto = TransactionMapper.mapTransactionToTransactionDTO(transaction);
-            transactionDTOList.add(dto);
-        }
-
-        return !transactionDTOList.isEmpty()
-                ? transactionDTOList
-                : Collections.emptyList();
+        return foundTransactions.stream()
+                .map(TransactionMapper::mapTransactionToTransactionDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -155,7 +149,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionType> getTransactionTypes(){
+    public List<TransactionType> getTransactionTypes() {
         Iterable<TransactionType> transactionTypes = transactionTypeRepository.findAll();
         return iterableToList(transactionTypes);
     }

@@ -33,9 +33,13 @@ public interface TokenService {
     /**
      * Verifies the authenticity of a JWT token using the provided public key.
      *
-     * @param token             The JWT token to be verified.
-     * @param publicKeyString   The encoded string representation of the public key.
+     * @param token           The JWT token to be verified.
+     * @param publicKeyString The encoded string representation of the public key.
      * @return true if the token is valid, false otherwise.
      */
     boolean verifyToken(String token, String publicKeyString);
+
+    Long extractUserIdFromToken(String token);
+
+    boolean validateJwtToken(String jwtToken);
 }

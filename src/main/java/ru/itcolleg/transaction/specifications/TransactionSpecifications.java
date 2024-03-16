@@ -34,4 +34,6 @@ public class TransactionSpecifications {
     public static Specification<Transaction> dateLessOrEqual(LocalDate dateTime){
         return (transaction, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(transaction.get("date"),dateTime);
     }
+
+    // TODO 3: create function for searching after userId in the database table transaction
 }

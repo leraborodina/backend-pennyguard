@@ -191,4 +191,33 @@ public class TokenServiceImpl implements TokenService {
     }
 
 
+    public Long extractUserIdFromToken(String token) {
+        try {
+            Jws<Claims> jws = Jwts.parser()
+                    .setSigningKey(keyPair.getPublic())
+                    .parseClaimsJws(token);
+
+            Claims claims = jws.getBody();
+            return Long.parseLong(claims.getSubject());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean validateJwtToken(String jwtToken) {
+        PublicKey publicKey = keyPair.getPublic();
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(publicKey)
+                    .build()
+                    .parseClaimsJws(jwtToken);
+
+            // Token parsing succeeded, check if it's expired or not.
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (Exception e) {
+            // Token parsing failed, token is invalid.
+            return false;
+        }
+    }
 }

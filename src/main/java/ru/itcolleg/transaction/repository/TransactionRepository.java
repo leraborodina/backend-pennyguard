@@ -5,8 +5,10 @@ import org.springframework.data.repository.CrudRepository;
 import ru.itcolleg.transaction.model.Transaction;
 
 import javax.persistence.Id;
+import java.util.List;
 import java.util.Optional;
 
 public interface TransactionRepository extends CrudRepository <Transaction, Long>, JpaSpecificationExecutor<Transaction> {
 
+    List<Transaction> findTransactionsByUserId(Long userId);
 }

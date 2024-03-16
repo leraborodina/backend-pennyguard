@@ -13,7 +13,7 @@ spring:
     hibernate:
       # Automatic DDL (Data Definition Language) generation strategy:
       # - create: creates database schema on startup (note: this may drop existing schema)
-      ddl-auto: create
+      ddl-auto: update
       # Enable SQL logging for better debugging
       show-sql: true
     properties:
@@ -26,4 +26,4 @@ spring:
 # Application-specific configurations
 app:
   # JWT (JSON Web Token) expiration time in milliseconds
-  jwtExpirationMs: 60000
+  jwtExpirationMs: 9000000

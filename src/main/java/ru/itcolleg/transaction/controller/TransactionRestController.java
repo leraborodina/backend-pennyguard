@@ -4,16 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
-import ru.itcolleg.transaction.exception.TransactionNotFoundException;
 import ru.itcolleg.transaction.model.Category;
-import ru.itcolleg.transaction.model.Transaction;
 import ru.itcolleg.transaction.model.TransactionType;
-import ru.itcolleg.transaction.repository.TransactionRepository;
 import ru.itcolleg.transaction.service.TransactionService;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +19,12 @@ import java.util.Optional;
 public class TransactionRestController {
     private final TransactionService transactionService;
 
+    private final TokenService tokenService;
+
     @Autowired
-    public TransactionRestController(TransactionService transactionService) {
+    public TransactionRestController(TransactionService transactionService, TokenService tokenService) {
         this.transactionService = transactionService;
+        this.tokenService = tokenService;
     }
 
     @PostMapping
@@ -37,15 +37,24 @@ public class TransactionRestController {
         }
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getTransactionByUserId(@PathVariable Long userId){
+    @GetMapping("/user/")
+    public ResponseEntity<?> getTransactionsByUserId(@RequestHeader("Authorization") String token) {
+        // Authorization check
+        if (!tokenService.validateJwtToken(token)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
+        }
+
+        // If authorized, fetch transactions
         try {
-            List<TransactionDTO> userTransactions = transactionService.getTransactionsByUserId(userId);
+            // Extract user ID from the token
+            Long extractedUserId = tokenService.extractUserIdFromToken(token);
+            List<TransactionDTO> userTransactions = transactionService.getTransactionsByUserId(extractedUserId);
             return new ResponseEntity<>(userTransactions, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
@@ -79,10 +88,10 @@ public class TransactionRestController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@RequestBody TransactionDTO transactionDTO, @PathVariable Long id) {
-        try{
+        try {
             Optional<TransactionDTO> updatedTransaction = transactionService.updateTransaction(transactionDTO, id);
             return new ResponseEntity<>(updatedTransaction, HttpStatus.OK);
-        } catch( Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
@@ -96,5 +105,7 @@ public class TransactionRestController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
+    // TODO: create method delete transaction by id
 
 }
