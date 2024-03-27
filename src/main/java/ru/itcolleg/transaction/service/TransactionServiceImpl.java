@@ -3,8 +3,10 @@ package ru.itcolleg.transaction.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.exception.TransactionNotFoundException;
+import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
 import ru.itcolleg.transaction.mapper.TransactionMapper;
 import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.model.Transaction;
@@ -15,7 +17,6 @@ import ru.itcolleg.transaction.repository.TransactionTypeRepository;
 import ru.itcolleg.transaction.specifications.TransactionSpecifications;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,13 +37,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Optional<TransactionDTO> saveTransaction(TransactionDTO transactionDTO) {
+    public Optional<TransactionDTO> saveTransaction(TransactionDTO transactionDTO, Long userId) {
 
         Transaction transaction = new Transaction();
-
+        transaction.setUserId(userId);
         transaction.setCategoryId(transactionDTO.getCategoryId());
         transaction.setTransactionTypeId(transactionDTO.getTransactionTypeId());
-        transaction.setUserId(transactionDTO.getUserId());
         transaction.setDate(transactionDTO.getDate());
         transaction.setAmount(transactionDTO.getAmount());
         transaction.setPurpose(transactionDTO.getPurpose());
@@ -53,6 +53,31 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionDTO savedTransaction = TransactionMapper.mapTransactionToTransactionDTO(dbTransaction);
         return Optional.ofNullable(savedTransaction);
     }
+
+    @Override
+    public void deleteTransaction(Long extractedUserId, Long id) throws TransactionNotFoundException, UnauthorizedTransactionException {
+        // Find the transaction by its ID in the repository
+        Optional<Transaction> transactionOptional = transactionRepository.findById(id);
+
+        // Check if the transaction exists
+        if (transactionOptional.isPresent()) {
+            // If the transaction exists, retrieve it
+            Transaction transaction = transactionOptional.get();
+
+            // Check if the extracted user ID matches the user ID associated with the transaction
+            if (transaction.getUserId().equals(extractedUserId)) {
+                // If the user IDs match, delete the transaction from the repository
+                transactionRepository.deleteById(id);
+            } else {
+                // If the user IDs don't match, throw an UnauthorizedTransactionException
+                throw new UnauthorizedTransactionException("UserIds don't match");
+            }
+        } else {
+            // If the transaction doesn't exist, throw a TransactionNotFoundException
+            throw new TransactionNotFoundException("Transaction not found for id " + id);
+        }
+    }
+
 
     @Override
     public Optional<TransactionDTO> getTransactionById(Long id) throws TransactionNotFoundException {
@@ -75,6 +100,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setDate(transactionDTO.getDate());
         transaction.setPurpose(transactionDTO.getPurpose());
         transaction.setCategoryId(transactionDTO.getCategoryId());
+        transaction.setTransactionTypeId(transactionDTO.getTransactionTypeId());
 
         Transaction savedTransaction = transactionRepository.save(transaction);
         //  TODO: создать package category(model,repository,dto?)
@@ -105,15 +131,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDTO> getAll(Double amount, String purpose, LocalDate date, String category) {
-        // TODO 1: add userId to parameters -> i cant search after transactions without userId.
+    public List<TransactionDTO> getAll(Double amount, String purpose, LocalDate date, Long categoryId, Long transactionTypeId, Long userId) {
 
-        // TODO 2: if userId == null than return empty list
+        if (userId == null) {
+            return Collections.emptyList();
+        }
 
-        Specification<Transaction> searchQuery = Specification.where(null);
-        // select * from transaction
-
-        // TODO 4: Add userId to specifications
+        Specification<Transaction> searchQuery = Specification.where(TransactionSpecifications.hasUserIdEquals(userId));
+        // select * from transaction where userId = {userId}
 
         if (amount != null && amount > 0) {
             searchQuery = searchQuery.and(TransactionSpecifications.amountGreaterOrEqual(amount));
@@ -127,12 +152,15 @@ public class TransactionServiceImpl implements TransactionService {
 
         // TODO 5: check data sql (Example: 16.03.2024 -> searching for 16 and 17 march, not correct)
         if (date != null) {
-            searchQuery = searchQuery.and(TransactionSpecifications.dateGreaterOrEqual(date));
+            searchQuery = searchQuery.and(TransactionSpecifications.dateEqual(date));
         }
 
-        // TODO 6: you are getting a string value from frontend. Firstly check if its true. Send category name from frontend and not categoryId.
-        if (category != null && !category.isEmpty()) {
-            searchQuery = searchQuery.or(TransactionSpecifications.hasCategoryEquals(category));
+        if (categoryId != null) {
+            searchQuery = searchQuery.or(TransactionSpecifications.hasCategoryEquals(categoryId));
+        }
+
+        if(transactionTypeId != null){
+            searchQuery = searchQuery.or(TransactionSpecifications.hasTransactionTypeEquals(transactionTypeId));
         }
 
         List<Transaction> foundTransactions = transactionRepository.findAll(searchQuery);

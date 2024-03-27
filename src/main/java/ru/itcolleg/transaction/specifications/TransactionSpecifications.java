@@ -11,8 +11,12 @@ public class TransactionSpecifications {
     public static Specification<Transaction> hasUserIdEquals(Long userId){
         return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("userId"), userId);
     }
-    public static Specification<Transaction> hasCategoryEquals(String category){
-        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("categoryId"), category);
+    public static Specification<Transaction> hasCategoryEquals(Long categoryId){
+        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("categoryId"), categoryId);
+    }
+
+    public static Specification<Transaction> hasTransactionTypeEquals(Long transactionTypeId){
+        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("transactionTypeId"), transactionTypeId);
     }
 
     public static Specification<Transaction> amountGreaterOrEqual(double amount){
@@ -27,8 +31,8 @@ public class TransactionSpecifications {
         return (transaction, query, criteriaBuilder) -> criteriaBuilder.like(transaction.get("purpose"), "%" + purpose + "%");
     }
 
-    public static Specification<Transaction> dateGreaterOrEqual(LocalDate dateTime){
-        return (transaction, query, criteriaBuilder) -> criteriaBuilder.greaterThan(transaction.get("date"),dateTime);
+    public static Specification<Transaction> dateEqual(LocalDate dateTime){
+        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("date"),dateTime);
     }
 
     public static Specification<Transaction> dateLessOrEqual(LocalDate dateTime){

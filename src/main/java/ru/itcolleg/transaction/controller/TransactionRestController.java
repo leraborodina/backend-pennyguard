@@ -28,14 +28,19 @@ public class TransactionRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createTransaction(@RequestBody TransactionDTO transactionDTO) {
+    public ResponseEntity<?> createTransaction(@RequestBody TransactionDTO transactionDTO,@RequestHeader("Authorization") String token) {
+        if (!tokenService.validateJwtToken(token)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
+        }
         try {
-            Optional<TransactionDTO> savedTransaction = transactionService.saveTransaction(transactionDTO);
+            Long extractedUserId = tokenService.extractUserIdFromToken(token);
+            Optional<TransactionDTO> savedTransaction = transactionService.saveTransaction(transactionDTO, extractedUserId);
             return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
 
     @GetMapping("/user/")
     public ResponseEntity<?> getTransactionsByUserId(@RequestHeader("Authorization") String token) {
@@ -57,7 +62,10 @@ public class TransactionRestController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Long id) {
+    public ResponseEntity<?> getById(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        if (!tokenService.validateJwtToken(token)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
+        }
         try {
             Optional<TransactionDTO> receivedTransaction = transactionService.getTransactionById(id);
             return new ResponseEntity<>(receivedTransaction, HttpStatus.OK);
@@ -97,15 +105,26 @@ public class TransactionRestController {
     }
 
     @GetMapping
-    public ResponseEntity<?> findAll(@RequestParam(required = false) Double amount, @RequestParam(required = false) String purpose, @RequestParam(required = false) String date, @RequestParam(required = false) String category) {
+    public ResponseEntity<?> findAll(@RequestParam(required = false) Double amount, @RequestParam(required = false) String purpose, @RequestParam(required = false) String date, @RequestParam(required = false) Long categoryId, @RequestParam(required = false) Long transactionTypeId, @RequestParam(required = false) Long userId) {
         try {
-            List<TransactionDTO> transactions = transactionService.getAll(amount, purpose, LocalDate.parse(date), category);
+            List<TransactionDTO> transactions = transactionService.getAll(amount, purpose, LocalDate.parse(date), categoryId, transactionTypeId,userId);
             return new ResponseEntity<>(transactions, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
-    // TODO: create method delete transaction by id
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id, @RequestHeader("Authorization") String token){
+        if (!tokenService.validateJwtToken(token)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
+        }
+        try {
+            Long extractedUserId = tokenService.extractUserIdFromToken(token);
+            transactionService.deleteTransaction(extractedUserId, id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
 }

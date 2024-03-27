@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 public class TransactionDTO {
     private Long id;
-    private Long userId;
     private Long categoryId;
     private Long transactionTypeId;
     private LocalDate date;
@@ -21,12 +20,8 @@ public class TransactionDTO {
         return id;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getCategoryId() {
