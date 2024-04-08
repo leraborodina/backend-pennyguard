@@ -16,6 +16,15 @@ public class TransactionDTO {
 
     }
 
+    public TransactionDTO(Long categoryId, Long transactionTypeId, LocalDate date, Double amount, String purpose, Boolean regular) {
+        this.categoryId = categoryId;
+        this.transactionTypeId = transactionTypeId;
+        this.date = date;
+        this.amount = amount;
+        this.purpose = purpose;
+        this.regular = regular;
+    }
+
     public Long getId() {
         return id;
     }
@@ -70,5 +79,18 @@ public class TransactionDTO {
 
     public void setRegular(Boolean regular) {
         this.regular = regular;
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionDTO{" +
+                "id=" + id +
+                ", categoryId=" + categoryId +
+                ", transactionTypeId=" + transactionTypeId +
+                ", date=" + date +
+                ", amount=" + amount +
+                ", purpose='" + purpose + '\'' +
+                ", regular=" + regular +
+                '}';
     }
 }
