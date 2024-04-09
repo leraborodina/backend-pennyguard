@@ -1,24 +1,13 @@
 package ru.itcolleg.transaction.utils;
 
-import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.text.TextPosition;
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.Parser;
-import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.xml.sax.SAXException;
-import ru.itcolleg.transaction.dto.Transaction;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.repository.CategoryRepository;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -99,31 +88,28 @@ public class PdfParser {
             transaction.setCategoryId(categoryId);
             transaction.setTransactionTypeId(sign.equals("-") ? 1L : 2L);
 
-
-
             transactions.add(transaction);
         }
 
-      for(TransactionDTO transactionDTO :transactions){
-          System.out.println(transactionDTO);
-      }
+        for (TransactionDTO transactionDTO : transactions) {
+            System.out.println(transactionDTO);
+        }
         return transactions;
     }
 
     private Long findCategory(String transactionStr) {
         // Define categories and their associated keywords
         Map<String, String[]> categoryKeywords = new HashMap<>();
-        categoryKeywords.put("Food", new String[]{"Продукты", "МАГАЗИН", "ГОРОД", "РЕСТОРАН", "ЕДА", "ПИТАНИЕ"});
-        categoryKeywords.put("Travel", new String[]{"ПУТЕШЕСТВИЕ", "БИЛЕТ", "АВИА", "ТРАНСПОРТ", "ПОЕЗДКА", "ОТПУСК"});
-        categoryKeywords.put("Health", new String[]{"ДОКТОР", "ЗДРАВ", "БОЛЬНИЦ", "ЛЕЧЕНИЕ", "МЕДИЦИНА", "ЗДОРОВЬЕ", "АПТЕКА"});
-        categoryKeywords.put("Beauty", new String[]{"КОСМЕТИК", "САЛОН", "КРАСОТА", "УХОД", "МАКИЯЖ", "ПАРИКМАХЕР"});
-        categoryKeywords.put("Transport", new String[]{"ТРАНСПОРТ", "МАШИНА", "ТАКСИ", "АВТОБУС", "МЕТРО", "ТАЧКА"});
+        categoryKeywords.put("Food", new String[]{"ПРОДУКТЫ", "КОФЕ", "COFFEE", "РЕСТОРАН", "ЕДА", "ПИТАНИЕ", "ФУД", "ПЕКАРНЯ", "ВКУСНО"});
+        categoryKeywords.put("Travel", new String[]{"ПУТЕШЕСТВИЕ", "БИЛЕТ", "АВИА", "ПОЕЗДКА", "ОТПУСК"});
+        categoryKeywords.put("Health", new String[]{"ДОКТОР", "ЗДРАВ", "БОЛЬНИЦА", "ЛЕЧЕНИЕ", "МЕДИЦИНА", "ЗДОРОВЬЕ", "АПТЕКА", "ХЕЛС"});
+        categoryKeywords.put("Beauty", new String[]{"КОСМЕТИК", "МАГНИТ", "САЛОН", "КРАСОТА", "УХОД", "МАКИЯЖ", "ПАРИКМАХЕР", "БЬЮТИ", "ПАРФЮМ"});
+        categoryKeywords.put("Transport", new String[]{"ТРАНСПОРТ", "ТАКСИ", "АВТОБУС", "МЕТРО", "ТРАНСП"});
         categoryKeywords.put("Entertainment", new String[]{"КИНО", "ТЕАТР", "КЛУБ", "КОНЦЕРТ", "ИГРА", "РАЗВЛЕЧЕНИЕ"});
-        categoryKeywords.put("Shopping", new String[]{"МАГАЗИН", "ПОКУПКА", "ТОВАР", "СКИДКА", "ПОКУПОК", "ПЛАТИТЬ"});
-        categoryKeywords.put("Education", new String[]{"ШКОЛА", "УНИВЕРСИТЕТ", "ОБУЧЕНИЕ", "КУРС", "УЧЕБА", "УЧИТЬ"});
-        categoryKeywords.put("Finance", new String[]{"БАНК", "КАРТА", "ПЕРЕВОД", "СЧЕТ", "ДЕНЬГИ", "КРЕДИТ"});
-        categoryKeywords.put("Personal", new String[]{"ЛИЧНЫЙ", "СЧЕТ", "ПЕРЕВОД", "СБП", "ПЕРЕВЕЛИ", "ПОЛУЧАТЕЛЬ"});
-        // Add more categories and their keywords as needed
+        categoryKeywords.put("Shopping", new String[]{"МАГАЗИН", "ПОКУПКА", "ТОВАР", "СКИДКА", "ПОКУПОК", "ПЛАТИТЬ", "ШОППИНГ"});
+        categoryKeywords.put("Education", new String[]{"ШКОЛА", "УНИВЕРСИТЕТ", "ОБУЧЕНИЕ", "КУРС", "УЧЕБА", "УЧИТЬ", "ОБРАЗОВАНИЕ"});
+        categoryKeywords.put("Finance", new String[]{"СЧЕТ", "КРЕДИТ"});
+        categoryKeywords.put("Personal", new String[]{"ЛИЧНЫЙ", "ПЕРЕВОД", "СБП", "ПЕРЕВЕЛИ", "ПОЛУЧАТЕЛЬ", "ПЕРСОНАЛЬНЫЙ"});
 
         // Iterate through category keywords
         for (Map.Entry<String, String[]> entry : categoryKeywords.entrySet()) {
@@ -131,7 +117,8 @@ public class PdfParser {
             String[] keywords = entry.getValue();
             // Check if any keyword is present in the transaction string
             for (String keyword : keywords) {
-                if (transactionStr.contains(keyword)) {
+                if (containsKeyword(transactionStr.toLowerCase(), keyword.toLowerCase())) {
+                    // Find the category ID in the database based on the category name
                     return findCategoryInDatabase(categoryName);
                 }
             }
@@ -141,6 +128,10 @@ public class PdfParser {
         return findCategoryInDatabase("Other");
     }
 
+    static boolean containsKeyword(String transactionStr, String keyword) {
+        return transactionStr.contains(keyword);
+    }
+
     private Long findCategoryInDatabase(String categoryName) {
         // Search for the category in the database by its value
         Category category = categoryRepository.findByValueContainingIgnoreCase(categoryName).orElse(null);
@@ -148,12 +139,11 @@ public class PdfParser {
             return category.getId();
         } else {
             // If category is not found, return a default value or handle accordingly
-            return getDefaultCategoryId(); // Return a default category ID
+            return getDefaultCategoryId();
         }
     }
 
     private Long getDefaultCategoryId() {
-        // You can define your default category ID here or retrieve it from a configuration
-        return 0L; // Example: Return category ID 1 as the default
+        return 0L; // Example: Return category ID 0 as the default
     }
 }

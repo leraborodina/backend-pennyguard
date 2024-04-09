@@ -10,7 +10,9 @@ import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.service.TransactionService;
 import ru.itcolleg.transaction.utils.PdfParser;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/upload")
@@ -36,21 +38,17 @@ public class FileUploadController {
         }
 
         try {
-            Long userId = tokenService.extractUserIdFromToken(token);
-
             // Parse PDF file to extract transaction data
             List<TransactionDTO> transactions = pdfParser.parseTransactions(pdfFile.getInputStream());
 
-            // Save each transaction
-            for (TransactionDTO transaction : transactions) {
-                transactionService.saveTransaction(transaction, userId);
-            }
-
-            return new ResponseEntity<>(HttpStatus.OK);
+            // Return a success response along with the list of transactions
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Transactions uploaded successfully");
+            responseBody.put("transactions", transactions);
+            return ResponseEntity.ok(responseBody);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload transactions: " + e.getMessage());
         }
     }
-
 }
 
