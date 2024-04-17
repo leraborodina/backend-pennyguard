@@ -133,6 +133,11 @@
             <artifactId>tika-core</artifactId>
             <version>2.9.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+            <version>5.3.20</version>
+        </dependency>
     </dependencies>
 
     <!-- Define project build configuration -->

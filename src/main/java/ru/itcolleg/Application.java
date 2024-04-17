@@ -3,6 +3,7 @@ package ru.itcolleg;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /*
    When you annotate a class with @SpringBootApplication,
@@ -54,6 +55,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 @EnableAutoConfiguration
+@EnableScheduling
 public class Application {
 
 	public static void main(String[] args) {
