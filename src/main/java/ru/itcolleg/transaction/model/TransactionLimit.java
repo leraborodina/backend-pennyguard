@@ -5,7 +5,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "Limits")
+@Table(name = "[limit]", schema = "[dbo]")
 public class TransactionLimit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
