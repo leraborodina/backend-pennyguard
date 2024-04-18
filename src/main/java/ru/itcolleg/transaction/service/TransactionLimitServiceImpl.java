@@ -31,8 +31,9 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
     }
 
     @Override
-    public void setTransactionLimit(TransactionLimitDTO limitDTO) {
+    public void setTransactionLimit(TransactionLimitDTO limitDTO, Long userId) {
         TransactionLimit limit = convertToEntity(limitDTO);
+        limit.setUserId(userId);
         transactionLimitRepository.save(limit);
     }
 
@@ -57,7 +58,6 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
     private TransactionLimitDTO convertToDTO(TransactionLimit limit) {
         TransactionLimitDTO dto = new TransactionLimitDTO();
         dto.setId(limit.getId());
-        dto.setUserId(limit.getUserId());
         dto.setCategoryId(limit.getCategoryId());
         dto.setLimitType(limit.getLimitType().getType());
         dto.setLimitValue(limit.getLimitValue());
@@ -67,7 +67,6 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
     private TransactionLimit convertToEntity(TransactionLimitDTO dto) {
         TransactionLimit limit = new TransactionLimit();
         limit.setId(dto.getId());
-        limit.setUserId(dto.getUserId());
         limit.setCategoryId(dto.getCategoryId());
         Optional<TransactionLimitType> limitType = transactionLimitTypeRepository.findLimitTypeByType(dto.getLimitType());
         limit.setLimitType(limitType.get());

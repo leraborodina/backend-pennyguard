@@ -5,7 +5,6 @@ import java.time.OffsetDateTime;
 public class TransactionLimitDTO {
 
     private Long id;
-    private Long userId;
     private Long categoryId;
     private String limitType;
     private Double limitValue;
@@ -17,14 +16,6 @@ public class TransactionLimitDTO {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 
     public Long getCategoryId() {

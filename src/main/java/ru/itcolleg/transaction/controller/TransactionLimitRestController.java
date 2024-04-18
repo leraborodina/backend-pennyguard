@@ -36,7 +36,8 @@ public class TransactionLimitRestController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to set transaction limits for this user");
         }
         try {
-            transactionLimitService.setTransactionLimit(limitDTO);
+            Long extractedUserId = tokenService.extractUserIdFromToken(token);
+            transactionLimitService.setTransactionLimit(limitDTO, extractedUserId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
