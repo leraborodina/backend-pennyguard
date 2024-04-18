@@ -3,19 +3,24 @@ package ru.itcolleg.transaction.service;
 import org.springframework.stereotype.Service;
 import ru.itcolleg.transaction.dto.TransactionLimitDTO;
 import ru.itcolleg.transaction.model.TransactionLimit;
+import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.repository.TransactionLimitRepository;
+import ru.itcolleg.transaction.repository.TransactionLimitTypeRepository;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class TransactionLimitServiceImpl implements TransactionLimitService {
 
     private final TransactionLimitRepository transactionLimitRepository;
+    private final TransactionLimitTypeRepository transactionLimitTypeRepository;
 
-    public TransactionLimitServiceImpl(TransactionLimitRepository transactionLimitRepository) {
+    public TransactionLimitServiceImpl(TransactionLimitRepository transactionLimitRepository, TransactionLimitTypeRepository transactionLimitTypeRepository) {
         this.transactionLimitRepository = transactionLimitRepository;
+        this.transactionLimitTypeRepository = transactionLimitTypeRepository;
     }
 
     @Override
@@ -54,7 +59,7 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
         dto.setId(limit.getId());
         dto.setUserId(limit.getUserId());
         dto.setCategoryId(limit.getCategoryId());
-        dto.setLimitType(limit.getLimitType());
+        dto.setLimitType(limit.getLimitType().getType());
         dto.setLimitValue(limit.getLimitValue());
         return dto;
     }
@@ -64,7 +69,8 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
         limit.setId(dto.getId());
         limit.setUserId(dto.getUserId());
         limit.setCategoryId(dto.getCategoryId());
-        limit.setLimitType(dto.getLimitType());
+        Optional<TransactionLimitType> limitType = transactionLimitTypeRepository.findLimitTypeByType(dto.getLimitType());
+        limit.setLimitType(limitType.get());
         limit.setLimitValue(dto.getLimitValue());
         return limit;
     }

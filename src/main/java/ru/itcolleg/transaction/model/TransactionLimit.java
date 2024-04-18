@@ -17,8 +17,9 @@ public class TransactionLimit {
     @Column(name = "category_id")
     private Long categoryId;
 
-    @Column(name = "limit_type")
-    private String limitType; // day, week, month
+    @ManyToOne
+    @JoinColumn(name = "limit_type", referencedColumnName = "limit_type")
+    private TransactionLimitType limitType; // day, week, month
 
     @Column(name = "limit_value")
     private Double limitValue;
@@ -50,11 +51,11 @@ public class TransactionLimit {
         this.categoryId = categoryId;
     }
 
-    public String getLimitType() {
+    public TransactionLimitType getLimitType() {
         return limitType;
     }
 
-    public void setLimitType(String limitType) {
+    public void setLimitType(TransactionLimitType limitType) {
         this.limitType = limitType;
     }
 
