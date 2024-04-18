@@ -10,8 +10,10 @@ import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
 import ru.itcolleg.transaction.mapper.TransactionMapper;
 import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.model.Transaction;
+import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.model.TransactionType;
 import ru.itcolleg.transaction.repository.CategoryRepository;
+import ru.itcolleg.transaction.repository.TransactionLimitTypeRepository;
 import ru.itcolleg.transaction.repository.TransactionRepository;
 import ru.itcolleg.transaction.repository.TransactionTypeRepository;
 import ru.itcolleg.transaction.specifications.TransactionSpecifications;
@@ -27,12 +29,15 @@ import java.util.stream.StreamSupport;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
+
+    private final TransactionLimitTypeRepository limitTypeRepository;
     private final TransactionTypeRepository transactionTypeRepository;
 
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, CategoryRepository categoryRepository, TransactionTypeRepository transactionTypeRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, CategoryRepository categoryRepository, TransactionLimitTypeRepository limitTypeRepository, TransactionTypeRepository transactionTypeRepository) {
         this.transactionRepository = transactionRepository;
         this.categoryRepository = categoryRepository;
+        this.limitTypeRepository = limitTypeRepository;
         this.transactionTypeRepository = transactionTypeRepository;
     }
 
@@ -174,6 +179,12 @@ public class TransactionServiceImpl implements TransactionService {
     public List<Category> getCategories() {
         Iterable<Category> categories = categoryRepository.findAll();
         return iterableToList(categories);
+    }
+
+    @Override
+    public List<TransactionLimitType> getLimitTypes() {
+        Iterable<TransactionLimitType> limitTypes = this.limitTypeRepository.findAll();
+        return iterableToList(limitTypes);
     }
 
     @Override

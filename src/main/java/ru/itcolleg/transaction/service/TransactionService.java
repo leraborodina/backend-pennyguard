@@ -4,6 +4,7 @@ import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.exception.TransactionNotFoundException;
 import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
 import ru.itcolleg.transaction.model.Category;
+import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.model.TransactionType;
 
 import java.time.LocalDate;
@@ -22,6 +23,10 @@ public interface TransactionService {
     List<TransactionDTO> getAll(Double amount, String purpose, LocalDate date, Long categoryId, Long transactionTypeId, Long userId);
 
     List<Category> getCategories();
+
+    List<TransactionLimitType> getLimitTypes();
+
     List<TransactionType> getTransactionTypes();
+
     List<TransactionDTO> getTransactionsByUserId(Long userId);
 }

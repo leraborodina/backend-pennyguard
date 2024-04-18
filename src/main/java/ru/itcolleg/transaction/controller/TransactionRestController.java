@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.model.Category;
+import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.model.TransactionType;
 import ru.itcolleg.transaction.service.TransactionService;
 
@@ -79,6 +80,16 @@ public class TransactionRestController {
         try {
             List<Category> categories = transactionService.getCategories();
             return new ResponseEntity<>(categories, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/limit-types")
+    public ResponseEntity<?> getLimitTypes() {
+        try {
+            List<TransactionLimitType> limitTypes = transactionService.getLimitTypes();
+            return new ResponseEntity<>(limitTypes, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
