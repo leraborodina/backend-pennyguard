@@ -106,15 +106,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUserPublicKey(User user, String publicKey) {
+    public void updateUserPublicKey(Long userId, String publicKey) {
         try {
-            // Step 1: Check if the provided user is not null
-            if (user != null) {
-                // Step 2: Update the user's public key
-                user.setPublicKey(publicKey);
+            // Step 1: Check if the provided user ID is not null
+            if (userId != null) {
+                // Step 2: Fetch the user by ID and update the user's public key
+                Optional<User> optionalUser = this.userRepository.findById(userId);
 
-                // Step 3: Save the updated user to the repository
-                userRepository.save(user);
+                if(optionalUser.isPresent()){
+                    User user = optionalUser.get();
+                    user.setPublicKey(publicKey);
+                    userRepository.save(user);
+                }
             } else {
                 // Step 4: Handle the case when the provided user is null
                 throw new IllegalArgumentException("User cannot be null for updating public key");

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.model.Category;
@@ -28,11 +29,9 @@ public class TransactionRestController {
         this.tokenService = tokenService;
     }
 
+    @RequiresTokenValidation
     @PostMapping
-    public ResponseEntity<?> createTransaction(@RequestBody TransactionDTO transactionDTO,@RequestHeader("Authorization") String token) {
-        if (!tokenService.validateJwtToken(token)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
-        }
+    public ResponseEntity<?> createTransaction(@RequestBody TransactionDTO transactionDTO, @RequestHeader("Authorization") String token) {
         try {
             Long extractedUserId = tokenService.extractUserIdFromToken(token);
             Optional<TransactionDTO> savedTransaction = transactionService.saveTransaction(transactionDTO, extractedUserId);
@@ -42,7 +41,7 @@ public class TransactionRestController {
         }
     }
 
-
+    @RequiresTokenValidation
     @GetMapping("/user/")
     public ResponseEntity<?> getTransactionsByUserId(@RequestHeader("Authorization") String token) {
         // Authorization check
@@ -61,7 +60,7 @@ public class TransactionRestController {
         }
     }
 
-
+    @RequiresTokenValidation
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {
@@ -75,6 +74,7 @@ public class TransactionRestController {
         }
     }
 
+    @RequiresTokenValidation
     @GetMapping("/categories")
     public ResponseEntity<?> getCategories() {
         try {
@@ -105,6 +105,7 @@ public class TransactionRestController {
         }
     }
 
+    @RequiresTokenValidation
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@RequestBody TransactionDTO transactionDTO, @PathVariable Long id) {
         try {
@@ -115,18 +116,20 @@ public class TransactionRestController {
         }
     }
 
+    @RequiresTokenValidation
     @GetMapping
     public ResponseEntity<?> findAll(@RequestParam(required = false) Double amount, @RequestParam(required = false) String purpose, @RequestParam(required = false) String date, @RequestParam(required = false) Long categoryId, @RequestParam(required = false) Long transactionTypeId, @RequestParam(required = false) Long userId) {
         try {
-            List<TransactionDTO> transactions = transactionService.getAll(amount, purpose, LocalDate.parse(date), categoryId, transactionTypeId,userId);
+            List<TransactionDTO> transactions = transactionService.getAll(amount, purpose, LocalDate.parse(date), categoryId, transactionTypeId, userId);
             return new ResponseEntity<>(transactions, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
+    @RequiresTokenValidation
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id, @RequestHeader("Authorization") String token){
+    public ResponseEntity<?> delete(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
         }

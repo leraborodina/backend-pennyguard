@@ -2,6 +2,7 @@ package ru.itcolleg.transaction.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionLimitDTO;
 import ru.itcolleg.transaction.service.TransactionLimitService;
@@ -17,6 +18,7 @@ public class TransactionLimitRestController {
         this.tokenService = tokenService;
     }
 
+    @RequiresTokenValidation
     @GetMapping("/{id}")
     public ResponseEntity<?> getTransactionLimitById(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {
@@ -30,6 +32,7 @@ public class TransactionLimitRestController {
         }
     }
 
+    @RequiresTokenValidation
     @PostMapping
     public ResponseEntity<?> setTransactionLimit(@RequestBody TransactionLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {
@@ -44,6 +47,7 @@ public class TransactionLimitRestController {
         }
     }
 
+    @RequiresTokenValidation
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTransactionLimit(@PathVariable Long id, @RequestBody TransactionLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {
@@ -60,6 +64,7 @@ public class TransactionLimitRestController {
         }
     }
 
+    @RequiresTokenValidation
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTransactionLimit(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {

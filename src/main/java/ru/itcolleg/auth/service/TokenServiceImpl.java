@@ -21,8 +21,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Value("${app.jwtExpirationMs}")
     private int jwtExpirationMs;
-
-    private final KeyPair keyPair;
+    private KeyPair keyPair;
 
     /**
      * Constructor for initializing the TokenService with a generated key pair.
@@ -36,7 +35,7 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    public String generateToken(Long userId) {
+    public String generateToken(Long userId) throws NoSuchAlgorithmException {
         try {
             // Step 1: Set the expiration date for the token
             Date expirationDate = new Date(System.currentTimeMillis() + jwtExpirationMs);

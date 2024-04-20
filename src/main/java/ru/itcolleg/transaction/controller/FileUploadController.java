@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.service.TransactionService;
@@ -31,6 +32,7 @@ public class FileUploadController {
         this.pdfParser = pdfParser;
     }
 
+    @RequiresTokenValidation
     @PostMapping("/pdf")
     public ResponseEntity<?> uploadPDF(@RequestParam("pdfFile") MultipartFile pdfFile, @RequestHeader("Authorization") String token) {
         if (!tokenService.validateJwtToken(token)) {

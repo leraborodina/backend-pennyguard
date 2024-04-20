@@ -3,13 +3,11 @@ package ru.itcolleg.auth.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.itcolleg.auth.dto.LoginRequest;
 import ru.itcolleg.auth.dto.LoginResponse;
 import ru.itcolleg.auth.service.AuthService;
+import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.user.exception.UserLoginCredentialsNotCorrect;
 import ru.itcolleg.user.exception.UserNotFoundException;
@@ -19,6 +17,7 @@ import ru.itcolleg.user.service.UserService;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
 import java.util.Optional;
 
 /*
@@ -74,6 +73,17 @@ public class AuthRestController {
         this.tokenService = tokenService;
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestHeader("X-UserId") Long userId) {
+        try {
+            String newAccessToken = tokenService.generateToken(userId);
+            userService.updateUserPublicKey(userId, newAccessToken);
+            return ResponseEntity.ok(Collections.singletonMap("token", newAccessToken));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error refreshing token");
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -89,8 +99,7 @@ public class AuthRestController {
                 if (optionalUser.isPresent()) {
                     // Step 5: Generate a token and update user public key
                     String token = tokenService.generateToken(optionalUser.get().getUserId());
-                    userService.updateUserPublicKey(optionalUser.get(), tokenService.getEncodedPublicKey());
-
+                    userService.updateUserPublicKey(optionalUser.get().getUserId(), tokenService.getEncodedPublicKey());
 
                     LoginResponse response = new LoginResponse();
                     response.setFirstname(optionalUser.get().getFirstname());

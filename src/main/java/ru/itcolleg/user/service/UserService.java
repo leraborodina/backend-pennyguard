@@ -40,9 +40,9 @@ public interface UserService {
     /**
      * Updates the public key of a user.
      *
-     * @param user     The user to update.
+     * @param userId     The userId of the user to update.
      * @param publicKey The new public key.
      * @throws IllegalArgumentException If the provided user is null.
      */
-    void updateUserPublicKey(User user, String publicKey);
+    void updateUserPublicKey(Long userId, String publicKey);
 }

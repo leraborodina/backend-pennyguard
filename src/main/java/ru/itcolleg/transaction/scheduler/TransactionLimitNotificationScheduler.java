@@ -29,7 +29,7 @@ public class TransactionLimitNotificationScheduler {
             // Check if the limit will be exceeded within the next 3 days
             OffsetDateTime limitExpiryDate = calculateLimitExpiryDate(limit.getCreatedAt(), limit.getLimitType());
             if (currentDate.isAfter(limitExpiryDate)) {
-                notificationService.sendNotification(limit.getUserId(), "Limit exceeded for category: " + limit.getCategoryId());
+                //notificationService.sendNotification(limit.getUserId(), "Limit exceeded for category: " + limit.getCategoryId());
             }
         }
     }

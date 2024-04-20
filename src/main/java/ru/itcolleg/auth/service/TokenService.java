@@ -1,5 +1,6 @@
 package ru.itcolleg.auth.service;
 
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 /**
@@ -13,7 +14,7 @@ public interface TokenService {
      * @param userId The ID of the user for whom the token is generated.
      * @return The generated JWT token.
      */
-    String generateToken(Long userId);
+    String generateToken(Long userId) throws NoSuchAlgorithmException;
 
     /**
      * Encodes a PublicKey into a Base64-encoded string.
