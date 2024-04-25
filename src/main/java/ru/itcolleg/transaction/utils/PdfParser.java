@@ -82,11 +82,11 @@ public class PdfParser {
 
             // Create a Transaction object and add it to the list
             TransactionDTO transaction = new TransactionDTO();
-            transaction.setDate(date);
+            //transaction.setCreatedAt(date);
             transaction.setAmount(amount);
             transaction.setRegular(false);
             transaction.setCategoryId(categoryId);
-            transaction.setTransactionTypeId(sign.equals("-") ? 1L : 2L);
+            transaction.setTypeId(sign.equals("-") ? 1L : 2L);
 
             transactions.add(transaction);
         }
@@ -134,7 +134,7 @@ public class PdfParser {
 
     private Long findCategoryInDatabase(String categoryName) {
         // Search for the category in the database by its value
-        Category category = categoryRepository.findByValueContainingIgnoreCase(categoryName).orElse(null);
+        Category category = categoryRepository.findByNameContainingIgnoreCase(categoryName).orElse(null);
         if (category != null) {
             return category.getId();
         } else {

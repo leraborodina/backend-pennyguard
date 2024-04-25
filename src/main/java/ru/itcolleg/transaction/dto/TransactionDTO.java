@@ -1,25 +1,28 @@
 package ru.itcolleg.transaction.dto;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class TransactionDTO {
     private Long id;
+    private Long userId;
     private Long categoryId;
-    private Long transactionTypeId;
-    private LocalDate date;
+    private Long typeId;
+    private String createdAtStr;
     private Double amount;
     private String purpose;
     private Boolean regular;
 
-    public TransactionDTO (){
-
+    public TransactionDTO() {
     }
 
-    public TransactionDTO(Long categoryId, Long transactionTypeId, LocalDate date, Double amount, String purpose, Boolean regular) {
+    public TransactionDTO(Long id, Long userId, Long categoryId, Long typeId, OffsetDateTime createdAt, Double amount, String purpose, Boolean regular) {
+        this.id = id;
+        this.userId = userId;
         this.categoryId = categoryId;
-        this.transactionTypeId = transactionTypeId;
-        this.date = date;
+        this.typeId = typeId;
+        this.createdAtStr = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         this.amount = amount;
         this.purpose = purpose;
         this.regular = regular;
@@ -33,6 +36,14 @@ public class TransactionDTO {
         this.id = id;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     public Long getCategoryId() {
         return categoryId;
     }
@@ -41,20 +52,28 @@ public class TransactionDTO {
         this.categoryId = categoryId;
     }
 
-    public Long getTransactionTypeId() {
-        return transactionTypeId;
+    public Long getTypeId() {
+        return typeId;
     }
 
-    public void setTransactionTypeId(Long transactionTypeId) {
-        this.transactionTypeId = transactionTypeId;
+    public void setTypeId(Long typeId) {
+        this.typeId = typeId;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public String getCreatedAtStr() {
+        return createdAtStr;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setCreatedAtStr(String createdAtStr) {
+        this.createdAtStr = createdAtStr;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return OffsetDateTime.parse(createdAtStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAtStr = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
     public Double getAmount() {
@@ -80,17 +99,6 @@ public class TransactionDTO {
     public void setRegular(Boolean regular) {
         this.regular = regular;
     }
-
-    @Override
-    public String toString() {
-        return "TransactionDTO{" +
-                "id=" + id +
-                ", categoryId=" + categoryId +
-                ", transactionTypeId=" + transactionTypeId +
-                ", date=" + date +
-                ", amount=" + amount +
-                ", purpose='" + purpose + '\'' +
-                ", regular=" + regular +
-                '}';
-    }
 }
+
+

@@ -3,6 +3,7 @@ package ru.itcolleg.transaction.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.repository.CategoryRepository;
 
@@ -46,7 +47,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         Category existingCategory = existingCategoryOptional.get();
-        existingCategory.setValue(category.getValue());
+        existingCategory.setName(category.getName());
 
         return Optional.of(categoryRepository.save(existingCategory));
     }
@@ -60,11 +61,20 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Category> getAll() {
-        List<Category> allCategories = categoryRepository.findAll();
-        if (allCategories.isEmpty()) {
+    @Transactional(readOnly = true)
+    public List<Category> getAll(Long userId) {
+        // Find categories where isDefault is true or (isDefault is null or false) and userId = :userId if userId is not null
+        List<Category> categories;
+        if (userId != null) {
+            categories = categoryRepository.findByIsDefaultTrueOrIsDefaultIsNullAndUserId(userId);
+        } else {
+            categories = categoryRepository.findByIsDefaultTrue();
+        }
+
+        if (categories.isEmpty()) {
             throw new DataAccessException("No categories found") {};
         }
-        return allCategories;
+
+        return categories;
     }
 }

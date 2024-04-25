@@ -1,10 +1,11 @@
 package ru.itcolleg.user.dto;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Data Transfer Object (DTO) for representing user information during registration.
  */
 public class UserDTO {
-
     private String firstname;
     private String lastname;
     private String email;

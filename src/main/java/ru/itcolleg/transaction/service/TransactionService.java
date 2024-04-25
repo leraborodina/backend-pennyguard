@@ -22,10 +22,6 @@ public interface TransactionService {
 
     List<TransactionDTO> getAll(Double amount, String purpose, LocalDate date, Long categoryId, Long transactionTypeId, Long userId);
 
-    List<Category> getCategories();
-
-    List<TransactionLimitType> getLimitTypes();
-
     List<TransactionType> getTransactionTypes();
 
     List<TransactionDTO> getTransactionsByUserId(Long userId);

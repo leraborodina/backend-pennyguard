@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.itcolleg.auth.service.RequiresTokenValidation;
+import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.service.CategoryService;
 
@@ -14,14 +15,17 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/api/category")
 public class CategoryRestController {
 
     private final CategoryService categoryService;
 
+    private final TokenService tokenService;
+
     @Autowired
-    public CategoryRestController(CategoryService categoryService) {
+    public CategoryRestController(CategoryService categoryService, TokenService tokenService) {
         this.categoryService = categoryService;
+        this.tokenService = tokenService;
     }
 
     @RequiresTokenValidation
@@ -50,11 +54,11 @@ public class CategoryRestController {
         }
     }
 
-    @RequiresTokenValidation
     @GetMapping
     public ResponseEntity<?> getAllCategories(@RequestHeader("Authorization") String token) {
         try {
-            List<Category> categories = categoryService.getAll();
+            Long userId = tokenService.extractUserIdFromToken(token);
+            List<Category> categories = categoryService.getAll(userId);
             return ResponseEntity.ok(categories);
         } catch (DataAccessException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database Error");

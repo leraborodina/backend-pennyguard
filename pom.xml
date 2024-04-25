@@ -144,6 +144,22 @@
             <artifactId>spring-websocket</artifactId>
             <version>5.3.14</version>
         </dependency>
+
+        <!-- MapStruct Core -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.4.2.Final</version> <!-- Replace with the latest version -->
+        </dependency>
+
+        <!-- MapStruct Annotation Processor -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.4.2.Final</version> <!-- Replace with the latest version -->
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <!-- Define project build configuration -->

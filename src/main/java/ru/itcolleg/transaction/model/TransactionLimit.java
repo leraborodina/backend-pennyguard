@@ -2,6 +2,7 @@ package ru.itcolleg.transaction.model;
 
 import javax.persistence.*;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 @Entity
@@ -25,7 +26,7 @@ public class TransactionLimit {
     private Double limitValue;
 
     @Column(name = "createdAt")
-    private Date createdAt; // Date when the limit was set
+    private OffsetDateTime createdAt; // Date when the limit was set
 
     public Long getId() {
         return id;
@@ -67,11 +68,11 @@ public class TransactionLimit {
         this.limitValue = limitValue;
     }
 
-    public Date getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

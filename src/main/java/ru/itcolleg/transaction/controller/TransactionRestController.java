@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
+import ru.itcolleg.transaction.exception.TransactionNotFoundException;
+import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
 import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.model.TransactionType;
@@ -33,9 +35,10 @@ public class TransactionRestController {
     @PostMapping
     public ResponseEntity<?> createTransaction(@RequestBody TransactionDTO transactionDTO, @RequestHeader("Authorization") String token) {
         try {
-            Long extractedUserId = tokenService.extractUserIdFromToken(token);
-            Optional<TransactionDTO> savedTransaction = transactionService.saveTransaction(transactionDTO, extractedUserId);
-            return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
+            Long userId = tokenService.extractUserIdFromToken(token);
+            Optional<TransactionDTO> savedTransaction = transactionService.saveTransaction(transactionDTO, userId);
+            return savedTransaction.map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
+                    .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -44,17 +47,10 @@ public class TransactionRestController {
     @RequiresTokenValidation
     @GetMapping("/user/")
     public ResponseEntity<?> getTransactionsByUserId(@RequestHeader("Authorization") String token) {
-        // Authorization check
-        if (!tokenService.validateJwtToken(token)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
-        }
-
-        // If authorized, fetch transactions
         try {
-            // Extract user ID from the token
-            Long extractedUserId = tokenService.extractUserIdFromToken(token);
-            List<TransactionDTO> userTransactions = transactionService.getTransactionsByUserId(extractedUserId);
-            return new ResponseEntity<>(userTransactions, HttpStatus.OK);
+            Long userId = tokenService.extractUserIdFromToken(token);
+            List<TransactionDTO> userTransactions = transactionService.getTransactionsByUserId(userId);
+            return ResponseEntity.ok(userTransactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -63,33 +59,9 @@ public class TransactionRestController {
     @RequiresTokenValidation
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id, @RequestHeader("Authorization") String token) {
-        if (!tokenService.validateJwtToken(token)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
-        }
         try {
             Optional<TransactionDTO> receivedTransaction = transactionService.getTransactionById(id);
-            return new ResponseEntity<>(receivedTransaction, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-    @RequiresTokenValidation
-    @GetMapping("/categories")
-    public ResponseEntity<?> getCategories() {
-        try {
-            List<Category> categories = transactionService.getCategories();
-            return new ResponseEntity<>(categories, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-    @GetMapping("/limit-types")
-    public ResponseEntity<?> getLimitTypes() {
-        try {
-            List<TransactionLimitType> limitTypes = transactionService.getLimitTypes();
-            return new ResponseEntity<>(limitTypes, HttpStatus.OK);
+            return receivedTransaction.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -110,7 +82,7 @@ public class TransactionRestController {
     public ResponseEntity<?> update(@RequestBody TransactionDTO transactionDTO, @PathVariable Long id) {
         try {
             Optional<TransactionDTO> updatedTransaction = transactionService.updateTransaction(transactionDTO, id);
-            return new ResponseEntity<>(updatedTransaction, HttpStatus.OK);
+            return updatedTransaction.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -121,7 +93,7 @@ public class TransactionRestController {
     public ResponseEntity<?> findAll(@RequestParam(required = false) Double amount, @RequestParam(required = false) String purpose, @RequestParam(required = false) String date, @RequestParam(required = false) Long categoryId, @RequestParam(required = false) Long transactionTypeId, @RequestParam(required = false) Long userId) {
         try {
             List<TransactionDTO> transactions = transactionService.getAll(amount, purpose, LocalDate.parse(date), categoryId, transactionTypeId, userId);
-            return new ResponseEntity<>(transactions, HttpStatus.OK);
+            return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -129,14 +101,13 @@ public class TransactionRestController {
 
     @RequiresTokenValidation
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id, @RequestHeader("Authorization") String token) {
-        if (!tokenService.validateJwtToken(token)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to access transactions for this user");
-        }
+    public ResponseEntity<?> deleteTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         try {
-            Long extractedUserId = tokenService.extractUserIdFromToken(token);
-            transactionService.deleteTransaction(extractedUserId, id);
-            return new ResponseEntity<>(HttpStatus.OK);
+            Long userId = tokenService.extractUserIdFromToken(token);
+            transactionService.deleteTransaction(userId, id);
+            return ResponseEntity.ok().build();
+        } catch (TransactionNotFoundException | UnauthorizedTransactionException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }

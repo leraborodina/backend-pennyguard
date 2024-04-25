@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryService {
-
     Optional<Category> save(Category category);
 
     Optional<Category> getById(Long id);
@@ -15,5 +14,5 @@ public interface CategoryService {
 
     void deleteById(Long id);
 
-    List<Category> getAll();
+    List<Category> getAll(Long userId);
 }

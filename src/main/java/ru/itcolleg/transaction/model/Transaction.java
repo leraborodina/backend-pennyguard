@@ -1,9 +1,7 @@
 package ru.itcolleg.transaction.model;
 
-
 import javax.persistence.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "[transaction]", schema = "[dbo]")
@@ -12,16 +10,17 @@ public class Transaction {
     @Id
     private Long id;
 
-    @Column(name="user_id")
+    @Column(name = "user_id")
     private Long userId;
 
-    @Column(name="category_id")
+    @Column(name = "category_id")
     private Long categoryId;
 
-    @Column(name="transaction_type_id")
-    private Long transactionTypeId;
+    @Column(name = "type_id")
+    private Long typeId;
 
-    private LocalDate date;
+    @Column(name = "created_at")
+    private OffsetDateTime createdAt;
 
     private Double amount;
 
@@ -29,13 +28,14 @@ public class Transaction {
 
     private Boolean regular;
 
-    public Transaction(){
+    public Transaction() {
 
     }
 
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -43,6 +43,7 @@ public class Transaction {
     public Long getUserId() {
         return userId;
     }
+
     public void setUserId(Long userId) {
         this.userId = userId;
     }
@@ -50,27 +51,31 @@ public class Transaction {
     public Long getCategoryId() {
         return categoryId;
     }
+
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
     }
 
-    public Long getTransactionTypeId() {
-        return transactionTypeId;
-    }
-    public void setTransactionTypeId(Long transactionTypeId) {
-        this.transactionTypeId = transactionTypeId;
+    public Long getTypeId() {
+        return typeId;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public void setTypeId(Long typeId) {
+        this.typeId = typeId;
     }
-    public void setDate(LocalDate date) {
-        this.date = date;
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) { // Adjust setter to accept OffsetDateTime
+        this.createdAt = createdAt;
     }
 
     public Double getAmount() {
         return amount;
     }
+
     public void setAmount(Double amount) {
         this.amount = amount;
     }
@@ -78,6 +83,7 @@ public class Transaction {
     public String getPurpose() {
         return purpose;
     }
+
     public void setPurpose(String purpose) {
         this.purpose = purpose;
     }
@@ -85,6 +91,7 @@ public class Transaction {
     public Boolean getRegular() {
         return regular;
     }
+
     public void setRegular(Boolean regular) {
         this.regular = regular;
     }
