@@ -22,7 +22,7 @@ public class TransactionLimitNotificationScheduler {
 
     @Scheduled(fixedRate = 86400000) // Check daily (adjust as needed)
     public void checkLimitsAndSendNotifications() {
-        List<TransactionLimitDTO> limits = transactionLimitService.getAllTransactionLimits();
+        List<TransactionLimitDTO> limits = transactionLimitService.getTransactionLimitsByUserId(null);
         OffsetDateTime currentDate = OffsetDateTime.now();
 
         for (TransactionLimitDTO limit : limits) {

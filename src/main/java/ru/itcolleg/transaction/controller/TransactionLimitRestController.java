@@ -1,5 +1,6 @@
 package ru.itcolleg.transaction.controller;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,19 @@ public class TransactionLimitRestController {
         this.tokenService = tokenService;
     }
 
+    @GetMapping
+    public ResponseEntity<?> getTransactionLimitsByUserId(@RequestHeader("Authorization") String token) {
+        try {
+            Long userId = tokenService.extractUserIdFromToken(token);
+            List<TransactionLimitDTO> transactionLimits = transactionLimitService.getTransactionLimitsByUserId(userId);
+            return ResponseEntity.ok(transactionLimits);
+        } catch (DataAccessException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database Error");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+        }
+    }
+
     @RequiresTokenValidation
     @GetMapping("/{id}")
     public ResponseEntity<TransactionLimitDTO> getTransactionLimitById(@PathVariable Long id, @RequestHeader("Authorization") String token) {
@@ -41,7 +55,7 @@ public class TransactionLimitRestController {
 
     @RequiresTokenValidation
     @PostMapping
-    public ResponseEntity<Void> setTransactionLimit(@RequestBody TransactionLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<Void> createTransactionLimit(@RequestBody TransactionLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
         try {
             Long extractedUserId = tokenService.extractUserIdFromToken(token);
             transactionLimitService.setTransactionLimit(limitDTO, extractedUserId);

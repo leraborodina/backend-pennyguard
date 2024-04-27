@@ -9,7 +9,7 @@ public class TransactionDTO {
     private Long userId;
     private Long categoryId;
     private Long typeId;
-    private String createdAtStr;
+    private OffsetDateTime createdAt;
     private Double amount;
     private String purpose;
     private Boolean regular;
@@ -22,7 +22,7 @@ public class TransactionDTO {
         this.userId = userId;
         this.categoryId = categoryId;
         this.typeId = typeId;
-        this.createdAtStr = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        this.createdAt = createdAt; // Set createdAt directly
         this.amount = amount;
         this.purpose = purpose;
         this.regular = regular;
@@ -61,19 +61,19 @@ public class TransactionDTO {
     }
 
     public String getCreatedAtStr() {
-        return createdAtStr;
+        return createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME); // Format createdAt to string
     }
 
     public void setCreatedAtStr(String createdAtStr) {
-        this.createdAtStr = createdAtStr;
+        this.createdAt = OffsetDateTime.parse(createdAtStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME); // Parse string to OffsetDateTime
     }
 
     public OffsetDateTime getCreatedAt() {
-        return OffsetDateTime.parse(createdAtStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        return createdAt;
     }
 
     public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAtStr = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        this.createdAt = createdAt;
     }
 
     public Double getAmount() {
@@ -100,5 +100,6 @@ public class TransactionDTO {
         this.regular = regular;
     }
 }
+
 
 

@@ -6,7 +6,7 @@ import ru.itcolleg.transaction.model.TransactionLimitType;
 import java.util.List;
 
 public interface TransactionLimitService {
-    List<TransactionLimitDTO> getAllTransactionLimits();
+    List<TransactionLimitDTO> getTransactionLimitsByUserId(Long userId);
     TransactionLimitDTO getTransactionLimitById(Long id);
     void setTransactionLimit(TransactionLimitDTO limitDTO, Long userId);
     void updateTransactionLimit(TransactionLimitDTO limitDTO);

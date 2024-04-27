@@ -122,10 +122,10 @@ public class TokenServiceImpl implements TokenService {
 
 
     /**
-     * Encodes a PublicKey into a Base64-encoded string.
+     * Encodes a PublicKey into a Base64 URL-encoded string.
      *
      * @param publicKey The PublicKey to be encoded.
-     * @return The Base64-encoded string representation of the PublicKey.
+     * @return The Base64 URL-encoded string representation of the PublicKey.
      */
     public String encodePublicKey(PublicKey publicKey) {
         // Step 1: Cast the PublicKey to RSAPublicKey for access to RSA-specific methods
@@ -138,22 +138,22 @@ public class TokenServiceImpl implements TokenService {
         // Step 3: Concatenate the modulus and exponent into a string with an underscore separator
         String publicKeyString = modulus.toString() + "_" + exponent.toString();
 
-        // Step 4: Encode the concatenated string into Base64
-        return Base64.getEncoder().encodeToString(publicKeyString.getBytes(StandardCharsets.UTF_8));
+        // Step 4: Encode the concatenated string into Base64 URL encoding
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(publicKeyString.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * Converts a Base64-encoded string representation of a public key into a PublicKey object.
+     * Converts a Base64 URL-encoded string representation of a public key into a PublicKey object.
      *
-     * @param encodedPublicKey The Base64-encoded string representation of the public key.
+     * @param encodedPublicKey The Base64 URL-encoded string representation of the public key.
      * @return The PublicKey created from the encoded string.
      * @throws NoSuchAlgorithmException If the RSA algorithm is not available.
      * @throws InvalidKeySpecException  If the provided key specification is invalid.
      * @throws IllegalArgumentException If the encoded public key has an invalid format.
      */
     public PublicKey stringToPublicKey(String encodedPublicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        // Step 1: Decode the Base64-encoded string into bytes
-        byte[] decodedBytes = Base64.getDecoder().decode(encodedPublicKey);
+        // Step 1: Decode the Base64 URL-encoded string into bytes
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(encodedPublicKey);
 
         // Step 2: Convert the byte array into a UTF-8 encoded string
         String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
@@ -162,7 +162,7 @@ public class TokenServiceImpl implements TokenService {
         RSAPublicKeySpec rsaPublicKeySpec = getRsaPublicKeySpec(decodedString);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
-        // Step 7: Generate the public key using the RSA public key specification
+        // Step 4: Generate the public key using the RSA public key specification
         return keyFactory.generatePublic(rsaPublicKeySpec);
     }
 
@@ -192,11 +192,12 @@ public class TokenServiceImpl implements TokenService {
 
     public Long extractUserIdFromToken(String token) {
         try {
-            Jws<Claims> jws = Jwts.parser()
-                    .setSigningKey(keyPair.getPublic())
-                    .parseClaimsJws(token);
+            JwtParserBuilder parserBuilder = Jwts.parserBuilder()
+                    .setSigningKey(keyPair.getPublic());
 
-            Claims claims = jws.getBody();
+            token = token.replace("Bearer ", "");
+
+            Claims claims = parserBuilder.build().parseClaimsJws(token).getBody();
             return Long.parseLong(claims.getSubject());
         } catch (Exception e) {
             e.printStackTrace();

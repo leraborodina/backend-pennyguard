@@ -9,6 +9,7 @@ import ru.itcolleg.transaction.repository.TransactionLimitRepository;
 import ru.itcolleg.transaction.repository.TransactionLimitTypeRepository;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,8 +60,15 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
     }
 
     @Override
-    public List<TransactionLimitDTO> getAllTransactionLimits() {
-        return transactionLimitRepository.findAll().stream()
+    public List<TransactionLimitDTO> getTransactionLimitsByUserId(Long userId) {
+
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+
+        List<TransactionLimit> foundLimits = transactionLimitRepository.findByUserId(userId);
+
+        return foundLimits.stream()
                 .map(transactionLimitMapper::toDto)
                 .collect(Collectors.toList());
     }
