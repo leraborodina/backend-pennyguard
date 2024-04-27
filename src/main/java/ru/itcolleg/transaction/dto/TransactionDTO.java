@@ -60,14 +60,6 @@ public class TransactionDTO {
         this.typeId = typeId;
     }
 
-    public String getCreatedAtStr() {
-        return createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME); // Format createdAt to string
-    }
-
-    public void setCreatedAtStr(String createdAtStr) {
-        this.createdAt = OffsetDateTime.parse(createdAtStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME); // Parse string to OffsetDateTime
-    }
-
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
