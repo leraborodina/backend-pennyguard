@@ -3,6 +3,7 @@ package ru.itcolleg.transaction.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import ru.itcolleg.notification.service.NotificationService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.exception.TransactionNotFoundException;
 import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
@@ -14,6 +15,8 @@ import ru.itcolleg.transaction.repository.TransactionTypeRepository;
 import ru.itcolleg.transaction.specifications.TransactionSpecifications;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +29,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final TransactionRepository transactionRepository;
     private final TransactionTypeRepository transactionTypeRepository;
+    private final NotificationService notificationService;
+    private final TransactionLimitService transactionLimitService;
 
     @Autowired
-    public TransactionServiceImpl(TransactionMapper transactionMapper, TransactionRepository transactionRepository, TransactionTypeRepository transactionTypeRepository) {
+    public TransactionServiceImpl(TransactionMapper transactionMapper, TransactionRepository transactionRepository, TransactionTypeRepository transactionTypeRepository, NotificationService notificationService, TransactionLimitService transactionLimitService) {
         this.transactionMapper = transactionMapper;
         this.transactionRepository = transactionRepository;
         this.transactionTypeRepository = transactionTypeRepository;
+        this.notificationService = notificationService;
+        this.transactionLimitService = transactionLimitService;
     }
 
     @Override
@@ -40,6 +47,17 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setUserId(userId);
         Transaction savedTransaction = transactionRepository.save(transaction);
 
+        Optional<TransactionType> typeOptional = this.transactionTypeRepository.findById(transaction.getTypeId());
+
+        if(typeOptional.isPresent()){
+            TransactionType transactionType = typeOptional.get();
+
+            if(transactionType.getType().equalsIgnoreCase("expences")){
+                notificationService.deleteNotifications(userId);
+                List<TransactionDTO> expenses = this.userExpenses(userId, transactionType.getId());
+                this.transactionLimitService.checkLimitsAndSendNotifications(userId, expenses);
+            }
+        }
         return Optional.of(transactionMapper.toTransactionDTO(savedTransaction));
     }
 
@@ -98,6 +116,83 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public List<TransactionDTO> userExpenses(Long userId, Long typeId) {
+        if (userId == null || typeId == null) {
+            return null;
+        }
+
+        // Define userId, typeId, and categoryId specifications
+        Specification<Transaction> userIdSpec = TransactionSpecifications.hasUserIdEquals(userId);
+        Specification<Transaction> typeIdSpec = TransactionSpecifications.hasTransactionTypeEquals(typeId);
+
+        // Combine specifications
+        Specification<Transaction> spec = Specification.where(userIdSpec)
+                .and(typeIdSpec);
+
+        // Retrieve transactions matching the specification
+        List<Transaction> foundTransactions = transactionRepository.findAll(spec);
+
+        // Map found transactions to DTOs
+        return foundTransactions.stream()
+                .map(transactionMapper::toTransactionDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public Double getUserFixExpenses(Long userId, Long categoryId, Integer salaryDay) {
+        if (userId == null) {
+            return null;
+        }
+
+        Optional<TransactionType> expensesType = transactionTypeRepository.findByTypeEquals("expences");
+
+        if (expensesType.isEmpty()) {
+            return 0.0; // No expenses type found, return 0.0
+        }
+
+        Long typeId = expensesType.get().getId();
+
+        // Get current year and month
+        OffsetDateTime currentDateTime = OffsetDateTime.now();
+        int currentYear = currentDateTime.getYear();
+        int currentMonth = currentDateTime.getMonthValue();
+
+        // Get salary day from user limits
+        int startDay = salaryDay;
+
+        // Set start date to the salary day of the current month
+        OffsetDateTime startDate = OffsetDateTime.of(currentYear, currentMonth, startDay, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        // Set end date to the last day of the current month
+        OffsetDateTime endDate = startDate.plusMonths(1).minusDays(1).withHour(23).withMinute(59).withSecond(59);
+
+        // Define userId, typeId, and categoryId specifications
+        Specification<Transaction> userIdSpec = TransactionSpecifications.hasUserIdEquals(userId);
+        Specification<Transaction> typeIdSpec = TransactionSpecifications.hasTransactionTypeEquals(typeId);
+        Specification<Transaction> categoryIdSpec = TransactionSpecifications.hasCategoryIdEquals(categoryId);
+
+        // Define date range specification
+        Specification<Transaction> dateRangeSpec = TransactionSpecifications.dateGreaterOrEqual(startDate)
+                .and(TransactionSpecifications.dateLessOrEqual(endDate));
+
+        // Combine specifications
+        Specification<Transaction> spec = Specification.where(userIdSpec)
+                .and(typeIdSpec)
+                .and(categoryIdSpec)
+                .and(dateRangeSpec);
+
+        // Retrieve transactions matching the specification
+        List<Transaction> foundTransactions = transactionRepository.findAll(spec);
+
+        // Map found transactions to DTOs and calculate the sum of amounts
+        return foundTransactions.stream()
+                .map(transactionMapper::toTransactionDTO)
+                .mapToDouble(TransactionDTO::getAmount)
+                .sum();
+    }
+
+    @Override
     public List<TransactionDTO> getAll(Double amount, String purpose, LocalDate date, Long categoryId, Long transactionTypeId, Long userId) {
         if (userId == null) {
             return Collections.emptyList();
@@ -114,11 +209,11 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         if (date != null) {
-            searchQuery = searchQuery.and(TransactionSpecifications.dateEqual(date));
+            searchQuery = searchQuery.and(TransactionSpecifications.dateGreaterOrEqual(OffsetDateTime.from(date)));
         }
 
         if (categoryId != null) {
-            searchQuery = searchQuery.and(TransactionSpecifications.hasCategoryEquals(categoryId));
+            searchQuery = searchQuery.and(TransactionSpecifications.hasCategoryIdEquals(categoryId));
         }
 
         if (transactionTypeId != null) {

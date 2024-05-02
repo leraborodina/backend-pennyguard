@@ -9,8 +9,6 @@ import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.exception.TransactionNotFoundException;
 import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
-import ru.itcolleg.transaction.model.Category;
-import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.model.TransactionType;
 import ru.itcolleg.transaction.service.TransactionService;
 

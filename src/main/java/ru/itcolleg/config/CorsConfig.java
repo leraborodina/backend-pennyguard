@@ -1,6 +1,8 @@
 package ru.itcolleg.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,11 +21,16 @@ public class CorsConfig implements WebMvcConfigurer {
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")  // Step 1: Allow CORS for all paths
-                .allowedOrigins("http://localhost:4200")  // Step 2: Specify the allowed origin (e.g., Angular app)
-                .allowedMethods("GET", "POST", "PUT", "DELETE")  // Step 3: Specify the allowed HTTP methods
-                .allowedHeaders("*")  // Step 4: Allow any headers
-                .allowCredentials(true)  // Step 5: Allow credentials (e.g., cookies)
-                .maxAge(3600);  // Step 6: Set the maximum age of the preflight request (in seconds)
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:4200")
+                .allowedMethods("GET", "POST", "PUT", "DELETE")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

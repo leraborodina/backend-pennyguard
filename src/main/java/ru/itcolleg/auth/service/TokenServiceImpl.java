@@ -3,7 +3,12 @@ package ru.itcolleg.auth.service;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import ru.itcolleg.user.model.User;
+import ru.itcolleg.user.repository.UserRepository;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
 
 
 @Service
@@ -22,6 +28,8 @@ public class TokenServiceImpl implements TokenService {
     @Value("${app.jwtExpirationMs}")
     private int jwtExpirationMs;
     private KeyPair keyPair;
+
+    private String token;
 
     /**
      * Constructor for initializing the TokenService with a generated key pair.
@@ -44,14 +52,20 @@ public class TokenServiceImpl implements TokenService {
             PrivateKey privateKey = keyPair.getPrivate();
 
             // Step 3: Build and sign the JWT token
-            return Jwts.builder()
+            this.token = Jwts.builder()
                     .setSubject(userId.toString())
                     .setExpiration(expirationDate)
                     .signWith(SignatureAlgorithm.RS256, privateKey)
                     .compact();
+            return this.token;
         } catch (Exception e) {
             throw new RuntimeException("Error generating token", e);
         }
+    }
+
+    @Override
+    public String getToken() {
+        return token;
     }
 
     @Override

@@ -12,4 +12,6 @@ import java.util.Optional;
 @Repository
 public interface TransactionRepository extends CrudRepository <Transaction, Long>, JpaSpecificationExecutor<Transaction> {
     List<Transaction> findTransactionsByUserId(Long userId);
+
+    List<Transaction> findTransactionsByUserIdAndTypeIdAndRegular(Long userId, Long typeId, Long notRegular);
 }

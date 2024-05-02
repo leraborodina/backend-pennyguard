@@ -1,5 +1,7 @@
 package ru.itcolleg.auth.service;
 
+import ru.itcolleg.user.model.User;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
@@ -43,4 +45,6 @@ public interface TokenService {
     Long extractUserIdFromToken(String token);
 
     boolean validateJwtToken(String jwtToken);
+
+    String getToken();
 }

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.transaction.dto.TransactionLimitDTO;
-import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.service.TransactionLimitService;
 
 import javax.persistence.EntityNotFoundException;
@@ -58,7 +57,7 @@ public class TransactionLimitRestController {
     public ResponseEntity<Void> createTransactionLimit(@RequestBody TransactionLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
         try {
             Long extractedUserId = tokenService.extractUserIdFromToken(token);
-            transactionLimitService.setTransactionLimit(limitDTO, extractedUserId);
+            transactionLimitService.createTransactionLimit(limitDTO, extractedUserId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
@@ -93,16 +92,6 @@ public class TransactionLimitRestController {
             return ResponseEntity.badRequest().build();
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/limit-types")
-    public ResponseEntity<List<TransactionLimitType>> getLimitTypes() {
-        try {
-            List<TransactionLimitType> limitTypes = transactionLimitService.getLimitTypes();
-            return ResponseEntity.ok(limitTypes);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

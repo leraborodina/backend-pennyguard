@@ -1,16 +1,23 @@
 package ru.itcolleg.transaction.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import ru.itcolleg.notification.service.NotificationService;
+import ru.itcolleg.transaction.dto.TransactionDTO;
 import ru.itcolleg.transaction.dto.TransactionLimitDTO;
 import ru.itcolleg.transaction.mapper.TransactionLimitMapper;
+import ru.itcolleg.transaction.model.Category;
 import ru.itcolleg.transaction.model.TransactionLimit;
-import ru.itcolleg.transaction.model.TransactionLimitType;
 import ru.itcolleg.transaction.repository.TransactionLimitRepository;
-import ru.itcolleg.transaction.repository.TransactionLimitTypeRepository;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -19,13 +26,98 @@ import java.util.stream.StreamSupport;
 public class TransactionLimitServiceImpl implements TransactionLimitService {
 
     private final TransactionLimitRepository transactionLimitRepository;
-    private final TransactionLimitTypeRepository transactionLimitTypeRepository;
     private final TransactionLimitMapper transactionLimitMapper;
+    private final CategoryService categoryService;
+    private final RestTemplate restTemplate;
 
-    public TransactionLimitServiceImpl(TransactionLimitRepository transactionLimitRepository, TransactionLimitTypeRepository transactionLimitTypeRepository, TransactionLimitMapper transactionLimitMapper) {
+    private final NotificationService notificationService;
+
+    public TransactionLimitServiceImpl(TransactionLimitRepository transactionLimitRepository, TransactionLimitMapper transactionLimitMapper, CategoryService categoryService, RestTemplate restTemplate, NotificationService notificationService) {
         this.transactionLimitRepository = transactionLimitRepository;
-        this.transactionLimitTypeRepository = transactionLimitTypeRepository;
         this.transactionLimitMapper = transactionLimitMapper;
+        this.categoryService = categoryService;
+        this.restTemplate = restTemplate;
+        this.notificationService = notificationService;
+    }
+
+    @Override
+    public void checkLimitsAndSendNotifications(Long userId, List<TransactionDTO> currentExpences) {
+        try {
+            List<TransactionLimitDTO> userLimits = this.getTransactionLimitsByUserId(userId);
+            userLimits.forEach(limit -> processLimit(userId, limit, currentExpences));
+        } catch (Exception e) {
+            handleException("Error processing daily limit check: ", e);
+        }
+    }
+
+    private void processLimit(Long currentUserId, TransactionLimitDTO userLimit, List<TransactionDTO> currentExpences) {
+        String category = getCategoryName(userLimit.getCategoryId());
+        List<TransactionDTO> expences = currentExpences; // all user expences
+
+        // Get current year and month
+        OffsetDateTime currentDateTime = OffsetDateTime.now();
+        int currentYear = currentDateTime.getYear();
+        int currentMonth = currentDateTime.getMonthValue();
+
+        // Get salary day from user limits
+        int startDay = userLimit.getSalaryDay();
+
+        // Set start date to the salary day of the current month
+        OffsetDateTime startDate = OffsetDateTime.of(currentYear, currentMonth, startDay, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        // Set end date to the last day of the current month
+        OffsetDateTime endDate = startDate.plusMonths(1).minusDays(1).withHour(23).withMinute(59).withSecond(59);
+
+        double sum = expences.stream().filter(
+                        transactionDTO -> {
+                            boolean isWithinDateRange = transactionDTO.getCreatedAt().isAfter(startDate) && transactionDTO.getCreatedAt().isBefore(endDate);
+
+                            return (userLimit.getCategoryId() == null ||
+                                    isWithinDateRange &&
+                                            (transactionDTO.getCategoryId() == null || Objects.equals(transactionDTO.getCategoryId(), userLimit.getCategoryId())));
+                        }
+                )
+                .mapToDouble(TransactionDTO::getAmount)
+                .sum();
+
+
+        double currentExpenses = sum;
+        if (currentExpenses >= userLimit.getAmount() * 0.8) {
+            sendNotification(currentUserId, userLimit, category);
+        }
+    }
+
+    private void sendNotification(Long currentUserId, TransactionLimitDTO userLimit, String category) {
+        String message = buildNotificationMessage(userLimit, category);
+        notificationService.saveNotification(currentUserId, message);
+        sendMessageToWebSocket(message);
+    }
+
+    private String buildNotificationMessage(TransactionLimitDTO userLimit, String category) {
+        String categoryMessage = category != null ? " category " + category : " all expenses";
+        return "Your limit for" + categoryMessage + " has reached 80%.";
+    }
+
+    private void sendMessageToWebSocket(String message) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> requestEntity = new HttpEntity<>(message, headers);
+            ResponseEntity<String> responseEntity = restTemplate.exchange("http://localhost:8080/api/notifications/send-message", HttpMethod.POST, requestEntity, String.class);
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                System.out.println("Message sent successfully to WebSocket clients");
+            } else {
+                System.err.println("Failed to send message to WebSocket clients. Status code: " + responseEntity.getStatusCode());
+            }
+        } catch (Exception e) {
+            handleException("Error sending message to WebSocket clients: ", e);
+        }
+    }
+
+    private String getCategoryName(Long categoryId) {
+        return categoryId != null ? categoryService.getById(categoryId)
+                .map(Category::getName)
+                .orElse(null) : null;
     }
 
     @Override
@@ -37,7 +129,7 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
     }
 
     @Override
-    public void setTransactionLimit(TransactionLimitDTO limitDTO, Long userId) {
+    public void createTransactionLimit(TransactionLimitDTO limitDTO, Long userId) {
         validateLimitDTO(limitDTO);
         try {
             TransactionLimit limit = transactionLimitMapper.toEntity(limitDTO);
@@ -81,12 +173,6 @@ public class TransactionLimitServiceImpl implements TransactionLimitService {
         } catch (Exception e) {
             handleException("Failed to delete transaction limit", e);
         }
-    }
-
-    @Override
-    public List<TransactionLimitType> getLimitTypes() {
-        Iterable<TransactionLimitType> limitTypesIterable = transactionLimitTypeRepository.findAll();
-        return iterableToList(limitTypesIterable);
     }
 
     private <T> List<T> iterableToList(Iterable<T> iterable) {

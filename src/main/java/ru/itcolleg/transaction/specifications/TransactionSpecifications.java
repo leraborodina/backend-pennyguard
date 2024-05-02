@@ -5,18 +5,25 @@ import ru.itcolleg.transaction.model.Transaction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public class TransactionSpecifications {
 
     public static Specification<Transaction> hasUserIdEquals(Long userId){
         return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("userId"), userId);
     }
-    public static Specification<Transaction> hasCategoryEquals(Long categoryId){
-        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("categoryId"), categoryId);
+    public static Specification<Transaction> hasCategoryIdEquals(Long categoryId) {
+        return (root, query, criteriaBuilder) -> {
+            if (categoryId == null) {
+                return null; // Return null to exclude the condition
+            } else {
+                return criteriaBuilder.equal(root.get("categoryId"), categoryId);
+            }
+        };
     }
 
     public static Specification<Transaction> hasTransactionTypeEquals(Long transactionTypeId){
-        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("transactionTypeId"), transactionTypeId);
+        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("typeId"), transactionTypeId);
     }
 
     public static Specification<Transaction> amountGreaterOrEqual(double amount){
@@ -31,13 +38,14 @@ public class TransactionSpecifications {
         return (transaction, query, criteriaBuilder) -> criteriaBuilder.like(transaction.get("purpose"), "%" + purpose + "%");
     }
 
-    public static Specification<Transaction> dateEqual(LocalDate dateTime){
-        return (transaction, query, criteriaBuilder) -> criteriaBuilder.equal(transaction.get("date"),dateTime);
+    public static Specification<Transaction> dateGreaterOrEqual(OffsetDateTime createdAt) {
+        return (transaction, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(transaction.get("createdAt"), createdAt);
     }
 
-    public static Specification<Transaction> dateLessOrEqual(LocalDate dateTime){
-        return (transaction, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(transaction.get("date"),dateTime);
+    public static Specification<Transaction> dateLessOrEqual(OffsetDateTime createdAt) {
+        return (transaction, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(transaction.get("createdAt"), createdAt);
     }
 
-    // TODO 3: create function for searching after userId in the database table transaction
 }

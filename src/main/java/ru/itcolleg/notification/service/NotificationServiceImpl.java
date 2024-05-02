@@ -1,25 +1,59 @@
 package ru.itcolleg.notification.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.itcolleg.notification.model.Notification;
+import ru.itcolleg.notification.repository.NotificationRepository;
+import ru.itcolleg.user.exception.UserNotFoundException;
+import ru.itcolleg.user.model.User;
+import ru.itcolleg.user.service.UserService;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final UserService userService;
+    private final NotificationRepository notificationRepository;
 
-    @Autowired
-    public NotificationServiceImpl(SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
+    public NotificationServiceImpl(UserService userService, NotificationRepository notificationRepository) {
+        this.userService = userService;
+        this.notificationRepository = notificationRepository;
+    }
+
+
+    @Override
+    public List<Notification> getNotificationsByUserId(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+
+        return this.notificationRepository.findAllByUserId(userId);
     }
 
     @Override
-    public void sendNotification(Long userId, String message) {
-        // Logic to send notification to the user with the specified userId
-        System.out.println("Sending notification to user " + userId + ": " + message);
+    public Notification saveNotification(Long userId, String message) {
+        if (userId == null) {
+            return null;
+        }
 
-        // Send the notification message to the user's WebSocket topic
-        messagingTemplate.convertAndSendToUser(String.valueOf(userId), "/topic/notifications", message);
+        Optional<User> optionalUser = this.userService.getUserById(userId);
+
+        if (optionalUser.isPresent()) {
+            Notification notification = new Notification();
+            notification.setMessage(message);
+            notification.setUserId(userId);
+
+            return this.notificationRepository.save(notification);
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void deleteNotifications(Long userId) {
+        this.notificationRepository.deleteAllByUserId(userId);
     }
 }

@@ -19,15 +19,12 @@ import java.util.Map;
 @RequestMapping("/api/upload")
 public class FileUploadController {
 
-    private final TransactionService transactionService;
-
     private final TokenService tokenService;
 
     private final PdfParser pdfParser;
 
     @Autowired
-    public FileUploadController(TransactionService transactionService, TokenService tokenService, PdfParser pdfParser) {
-        this.transactionService = transactionService;
+    public FileUploadController(TokenService tokenService, PdfParser pdfParser) {
         this.tokenService = tokenService;
         this.pdfParser = pdfParser;
     }

@@ -6,9 +6,8 @@ public class TransactionLimitDTO {
 
     private Long id;
     private Long categoryId;
-    private String limitType;
-    private Double limitValue;
-    private OffsetDateTime createdAt; // Using OffsetDateTime for setDate field
+    private Double amount;
+    private Integer salaryDay;
 
     public Long getId() {
         return id;
@@ -26,27 +25,19 @@ public class TransactionLimitDTO {
         this.categoryId = categoryId;
     }
 
-    public String getLimitType() {
-        return limitType;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setLimitType(String limitType) {
-        this.limitType = limitType;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
-    public Double getLimitValue() {
-        return limitValue;
+    public Integer getSalaryDay() {
+        return salaryDay;
     }
 
-    public void setLimitValue(Double limitValue) {
-        this.limitValue = limitValue;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setSalaryDay(Integer salaryDay) {
+        this.salaryDay = salaryDay;
     }
 }

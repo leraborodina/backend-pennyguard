@@ -3,7 +3,6 @@ package ru.itcolleg.transaction.model;
 import javax.persistence.*;
 
 import java.time.OffsetDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "[limit]", schema = "[dbo]")
@@ -12,21 +11,17 @@ public class TransactionLimit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "category_id")
+    @Column(name = "category_id", nullable = true)
     private Long categoryId;
 
-    @ManyToOne
-    @JoinColumn(name = "limit_type", referencedColumnName = "limit_type")
-    private TransactionLimitType limitType; // day, week, month
+    @Column(name = "amount", nullable = false)
+    private Double amount;
 
-    @Column(name = "limit_value")
-    private Double limitValue;
-
-    @Column(name = "createdAt")
-    private OffsetDateTime createdAt; // Date when the limit was set
+    @Column(name = "salary_day", nullable = false)
+    private Integer salaryDay;
 
     public Long getId() {
         return id;
@@ -52,27 +47,19 @@ public class TransactionLimit {
         this.categoryId = categoryId;
     }
 
-    public TransactionLimitType getLimitType() {
-        return limitType;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setLimitType(TransactionLimitType limitType) {
-        this.limitType = limitType;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
-    public Double getLimitValue() {
-        return limitValue;
+    public Integer getSalaryDay() {
+        return salaryDay;
     }
 
-    public void setLimitValue(Double limitValue) {
-        this.limitValue = limitValue;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setSalaryDay(Integer salaryDay) {
+        this.salaryDay = salaryDay;
     }
 }

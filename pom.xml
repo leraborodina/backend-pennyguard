@@ -70,7 +70,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.0.0</version>
         </dependency>
         <!-- MySQL Connector Java -->
         <dependency>
@@ -158,6 +158,16 @@
             <artifactId>mapstruct-processor</artifactId>
             <version>1.4.2.Final</version> <!-- Replace with the latest version -->
             <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
         </dependency>
 
     </dependencies>

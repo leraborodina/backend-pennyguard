@@ -11,10 +11,8 @@ public interface TransactionLimitMapper {
 
     TransactionLimitMapper INSTANCE = Mappers.getMapper(TransactionLimitMapper.class);
 
-    @Mapping(target = "limitType", source = "limitType.type")
     TransactionLimitDTO toDto(TransactionLimit limit);
 
-    @Mapping(target = "limitType.type", source = "limitType")
     TransactionLimit toEntity(TransactionLimitDTO dto);
 }
 

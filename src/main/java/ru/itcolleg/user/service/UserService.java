@@ -45,4 +45,6 @@ public interface UserService {
      * @throws IllegalArgumentException If the provided user is null.
      */
     void updateUserPublicKey(Long userId, String publicKey);
+
+    Optional<User> getUserById(Long userId);
 }

@@ -3,9 +3,8 @@ package ru.itcolleg.user.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.itcolleg.auth.service.TokenService;
-import ru.itcolleg.user.dto.UserDTO;
 import ru.itcolleg.auth.dto.LoginResponse;
+import ru.itcolleg.user.dto.UserDTO;
 import ru.itcolleg.user.exception.UserAlreadyExistsException;
 import ru.itcolleg.user.exception.UserNotFoundException;
 import ru.itcolleg.user.mapper.UserMapper;
@@ -113,7 +112,7 @@ public class UserServiceImpl implements UserService {
                 // Step 2: Fetch the user by ID and update the user's public key
                 Optional<User> optionalUser = this.userRepository.findById(userId);
 
-                if(optionalUser.isPresent()){
+                if (optionalUser.isPresent()) {
                     User user = optionalUser.get();
                     user.setPublicKey(publicKey);
                     userRepository.save(user);
@@ -130,6 +129,11 @@ public class UserServiceImpl implements UserService {
             // Log or perform specific actions for unexpected exceptions
             throw new RuntimeException("Error updating public key for user", e);
         }
+    }
+
+    @Override
+    public Optional<User> getUserById(Long userId) {
+        return userRepository.findById(userId);
     }
 
 }
