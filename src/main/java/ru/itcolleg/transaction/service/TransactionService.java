@@ -27,4 +27,6 @@ public interface TransactionService {
     Double getUserFixExpenses(Long userId, Long categoryId, Integer salaryDay);
 
     List<TransactionDTO> userExpenses(Long userId, Long typeId);
+
+    List<TransactionDTO> getUserIncomes(Long userId);
 }

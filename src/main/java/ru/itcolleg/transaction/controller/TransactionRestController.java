@@ -87,17 +87,6 @@ public class TransactionRestController {
     }
 
     @RequiresTokenValidation
-    @GetMapping
-    public ResponseEntity<?> findAll(@RequestParam(required = false) Double amount, @RequestParam(required = false) String purpose, @RequestParam(required = false) String date, @RequestParam(required = false) Long categoryId, @RequestParam(required = false) Long transactionTypeId, @RequestParam(required = false) Long userId) {
-        try {
-            List<TransactionDTO> transactions = transactionService.getAll(amount, purpose, LocalDate.parse(date), categoryId, transactionTypeId, userId);
-            return ResponseEntity.ok(transactions);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-    @RequiresTokenValidation
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         try {
@@ -106,6 +95,18 @@ public class TransactionRestController {
             return ResponseEntity.ok().build();
         } catch (TransactionNotFoundException | UnauthorizedTransactionException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+
+    @GetMapping("/user/incomes")
+    public ResponseEntity<?> getUserIncomes(@RequestHeader("Authorization") String token) {
+        try {
+            Long userId = tokenService.extractUserIdFromToken(token);
+            List<TransactionDTO> userIncomes = transactionService.getUserIncomes(userId);
+            return ResponseEntity.ok(userIncomes);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }

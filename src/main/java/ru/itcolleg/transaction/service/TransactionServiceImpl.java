@@ -3,8 +3,12 @@ package ru.itcolleg.transaction.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import ru.itcolleg.goal.dto.FinancialGoalDTO;
+import ru.itcolleg.goal.model.FinancialGoal;
+import ru.itcolleg.goal.service.FinancialGoalService;
 import ru.itcolleg.notification.service.NotificationService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
+import ru.itcolleg.transaction.dto.TransactionLimitDTO;
 import ru.itcolleg.transaction.exception.TransactionNotFoundException;
 import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
 import ru.itcolleg.transaction.mapper.TransactionMapper;
@@ -17,10 +21,12 @@ import ru.itcolleg.transaction.specifications.TransactionSpecifications;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -31,14 +37,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionTypeRepository transactionTypeRepository;
     private final NotificationService notificationService;
     private final TransactionLimitService transactionLimitService;
+    private final FinancialGoalService financialGoalService;
 
     @Autowired
-    public TransactionServiceImpl(TransactionMapper transactionMapper, TransactionRepository transactionRepository, TransactionTypeRepository transactionTypeRepository, NotificationService notificationService, TransactionLimitService transactionLimitService) {
+    public TransactionServiceImpl(TransactionMapper transactionMapper, TransactionRepository transactionRepository, TransactionTypeRepository transactionTypeRepository, NotificationService notificationService, TransactionLimitService transactionLimitService, FinancialGoalService financialGoalService) {
         this.transactionMapper = transactionMapper;
         this.transactionRepository = transactionRepository;
         this.transactionTypeRepository = transactionTypeRepository;
         this.notificationService = notificationService;
         this.transactionLimitService = transactionLimitService;
+        this.financialGoalService = financialGoalService;
     }
 
     @Override
@@ -138,6 +146,46 @@ public class TransactionServiceImpl implements TransactionService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<TransactionDTO> getUserIncomes(Long userId) {
+        if (userId == null ) {
+            return null;
+        }
+
+        List<FinancialGoalDTO> userGoals = this.financialGoalService.getAllGoals(userId);
+
+        Optional<TransactionType> typeOptional = this.transactionTypeRepository.findByTypeEquals("incomes");
+        Long typeId = null;
+
+        if(typeOptional.isPresent()){
+            typeId = typeOptional.get().getId();
+        }
+
+        Specification<Transaction> userIdSpec = TransactionSpecifications.hasUserIdEquals(userId);
+        Specification<Transaction> typeIdSpec = TransactionSpecifications.hasTransactionTypeEquals(typeId);
+
+        // Combine specifications
+        Specification<Transaction> spec = Specification.where(userIdSpec)
+                .and(typeIdSpec);
+
+        // Retrieve transactions matching the specification
+        List<Transaction> foundTransactions = transactionRepository.findAll(spec);
+
+        List<Transaction> filteredTransactions = new ArrayList<>();
+
+        for(FinancialGoalDTO financialGoalDTO : userGoals){
+            for(Transaction transaction : foundTransactions){
+                if(transaction.getCreatedAt().isAfter(financialGoalDTO.getStartDate())){
+                    filteredTransactions.add(transaction);
+                }
+            }
+        }
+
+        // Map filtered transactions to DTOs
+        return filteredTransactions.stream()
+                .map(transactionMapper::toTransactionDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public Double getUserFixExpenses(Long userId, Long categoryId, Integer salaryDay) {

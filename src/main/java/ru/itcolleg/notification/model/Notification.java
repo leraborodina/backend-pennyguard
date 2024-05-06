@@ -5,7 +5,7 @@ import ru.itcolleg.user.model.User;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "[notifications]", schema = "[dbo]")
 public class Notification {
 
     @Id

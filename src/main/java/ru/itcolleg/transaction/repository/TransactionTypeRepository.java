@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface TransactionTypeRepository extends CrudRepository<TransactionType, Long> {
-    Optional<TransactionType> findByTypeEquals(String expenses);
+    Optional<TransactionType> findByTypeEquals(String type);
 }
