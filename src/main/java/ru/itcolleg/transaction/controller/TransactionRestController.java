@@ -105,7 +105,7 @@ public class TransactionRestController {
     public ResponseEntity<?> getUserIncomes(@RequestHeader("Authorization") String token) {
         try {
             Long userId = tokenService.extractUserIdFromToken(token);
-            List<TransactionDTO> userIncomes = transactionService.getUserIncomes(userId);
+            Double userIncomes = transactionService.calculateUserBalanceAfterSettingGoals(userId);
             return ResponseEntity.ok(userIncomes);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());

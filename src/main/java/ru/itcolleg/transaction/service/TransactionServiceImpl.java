@@ -4,11 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.itcolleg.goal.dto.FinancialGoalDTO;
-import ru.itcolleg.goal.model.FinancialGoal;
 import ru.itcolleg.goal.service.FinancialGoalService;
 import ru.itcolleg.notification.service.NotificationService;
 import ru.itcolleg.transaction.dto.TransactionDTO;
-import ru.itcolleg.transaction.dto.TransactionLimitDTO;
 import ru.itcolleg.transaction.exception.TransactionNotFoundException;
 import ru.itcolleg.transaction.exception.UnauthorizedTransactionException;
 import ru.itcolleg.transaction.mapper.TransactionMapper;
@@ -21,12 +19,8 @@ import ru.itcolleg.transaction.specifications.TransactionSpecifications;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -57,12 +51,12 @@ public class TransactionServiceImpl implements TransactionService {
 
         Optional<TransactionType> typeOptional = this.transactionTypeRepository.findById(transaction.getTypeId());
 
-        if(typeOptional.isPresent()){
+        if (typeOptional.isPresent()) {
             TransactionType transactionType = typeOptional.get();
 
-            if(transactionType.getType().equalsIgnoreCase("expences")){
+            if (transactionType.getType().equalsIgnoreCase("expences")) {
                 notificationService.deleteNotifications(userId);
-                List<TransactionDTO> expenses = this.userExpenses(userId, transactionType.getId());
+                List<TransactionDTO> expenses = this.getUserExpencesByPeriodAndCategory(userId, transactionType.getId());
                 this.transactionLimitService.checkLimitsAndSendNotifications(userId, expenses);
             }
         }
@@ -124,7 +118,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDTO> userExpenses(Long userId, Long typeId) {
+    public List<TransactionDTO> getUserExpencesByPeriodAndCategory(Long userId, Long typeId) {
         if (userId == null || typeId == null) {
             return null;
         }
@@ -147,45 +141,63 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDTO> getUserIncomes(Long userId) {
-        if (userId == null ) {
+    public Double calculateUserBalanceAfterSettingGoals(Long userId) {
+        if (userId == null) {
             return null;
         }
 
-        List<FinancialGoalDTO> userGoals = this.financialGoalService.getAllGoals(userId);
+        // Retrieve all financial goals for the user
+        List<FinancialGoalDTO> userGoals = financialGoalService.getAllGoals(userId);
 
-        Optional<TransactionType> typeOptional = this.transactionTypeRepository.findByTypeEquals("incomes");
-        Long typeId = null;
+        // Retrieve transaction types for incomes and expenses
+        Optional<TransactionType> incomesTypeOptional = transactionTypeRepository.findByTypeEquals("incomes");
+        Optional<TransactionType> expensesTypeOptional = transactionTypeRepository.findByTypeEquals("expenses");
 
-        if(typeOptional.isPresent()){
-            typeId = typeOptional.get().getId();
-        }
+        Long incomesTypeId = incomesTypeOptional.map(TransactionType::getId).orElse(null);
+        Long expensesTypeId = expensesTypeOptional.map(TransactionType::getId).orElse(null);
 
+        // Define specifications for filtering transactions
         Specification<Transaction> userIdSpec = TransactionSpecifications.hasUserIdEquals(userId);
-        Specification<Transaction> typeIdSpec = TransactionSpecifications.hasTransactionTypeEquals(typeId);
+        Specification<Transaction> incomesSpec = TransactionSpecifications.hasTransactionTypeEquals(incomesTypeId);
+        Specification<Transaction> expensesSpec = TransactionSpecifications.hasTransactionTypeEquals(expensesTypeId);
 
-        // Combine specifications
-        Specification<Transaction> spec = Specification.where(userIdSpec)
-                .and(typeIdSpec);
+        // Combine specifications for incomes and expenses
+        Specification<Transaction> incomesByUserIdSpec = Specification.where(userIdSpec).and(incomesSpec);
+        Specification<Transaction> expensesByUserIdSpec = Specification.where(userIdSpec).and(expensesSpec);
 
-        // Retrieve transactions matching the specification
-        List<Transaction> foundTransactions = transactionRepository.findAll(spec);
+        // Retrieve transactions matching the specifications
+        List<Transaction> foundUserIncomes = transactionRepository.findAll(incomesByUserIdSpec);
+        List<Transaction> foundUserExpenses = transactionRepository.findAll(expensesByUserIdSpec);
 
-        List<Transaction> filteredTransactions = new ArrayList<>();
+        // Filter incomes and expenses occurred after the start date of each financial goal
+        Set<Transaction> userIncomesAfterGoalStart = filterTransactionsAfterGoalStart(userGoals, foundUserIncomes);
+        Set<Transaction> userExpensesAfterGoalStart = filterTransactionsAfterGoalStart(userGoals, foundUserExpenses);
 
-        for(FinancialGoalDTO financialGoalDTO : userGoals){
-            for(Transaction transaction : foundTransactions){
-                if(transaction.getCreatedAt().isAfter(financialGoalDTO.getStartDate())){
+        // Calculate total income and total expenses
+        double totalIncomes = calculateTotalAmount(userIncomesAfterGoalStart);
+        double totalExpenses = calculateTotalAmount(userExpensesAfterGoalStart);
+
+        // Calculate and return user balance after set goals
+        return (totalIncomes - totalExpenses) / userGoals.size();
+    }
+
+    private Set<Transaction> filterTransactionsAfterGoalStart(List<FinancialGoalDTO> userGoals, List<Transaction> transactions) {
+        Set<Transaction> filteredTransactions = new HashSet<>();
+        for (FinancialGoalDTO financialGoal : userGoals) {
+            OffsetDateTime goalStartDate = financialGoal.getStartDate();
+            for (Transaction transaction : transactions) {
+                if (transaction.getCreatedAt().isAfter(goalStartDate)) {
                     filteredTransactions.add(transaction);
                 }
             }
         }
-
-        // Map filtered transactions to DTOs
-        return filteredTransactions.stream()
-                .map(transactionMapper::toTransactionDTO)
-                .collect(Collectors.toList());
+        return filteredTransactions;
     }
+
+    private double calculateTotalAmount(Set<Transaction> transactions) {
+        return transactions.stream().mapToDouble(Transaction::getAmount).sum();
+    }
+
 
     @Override
     public Double getUserFixExpenses(Long userId, Long categoryId, Integer salaryDay) {
