@@ -28,5 +28,7 @@ public interface TransactionService {
 
     List<TransactionDTO> getUserExpencesByPeriodAndCategory(Long userId, Long typeId);
 
+    List<TransactionDTO> getUserExpences(Long userId);
+
     Double calculateUserBalanceAfterSettingGoals(Long userId);
 }

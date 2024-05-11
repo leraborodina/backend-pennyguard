@@ -141,6 +141,38 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public List<TransactionDTO> getUserExpences(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+
+        Optional<TransactionType> typeOptional = this.transactionTypeRepository.findByTypeEquals("expences");
+
+        if (typeOptional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        TransactionType transactionType = typeOptional.get();
+
+        // Define userId and typeId
+        Specification<Transaction> userIdSpec = TransactionSpecifications.hasUserIdEquals(userId);
+        Specification<Transaction> typeIdSpec = TransactionSpecifications.hasTransactionTypeEquals(transactionType.getId());
+
+        // Combine specifications
+        Specification<Transaction> spec = Specification.where(userIdSpec)
+                .and(typeIdSpec);
+
+        // Retrieve transactions matching the specification
+        List<Transaction> foundTransactions = transactionRepository.findAll(spec);
+
+        // Map found transactions to DTOs
+        return foundTransactions.stream()
+                .map(transactionMapper::toTransactionDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
     public Double calculateUserBalanceAfterSettingGoals(Long userId) {
         if (userId == null) {
             return null;
