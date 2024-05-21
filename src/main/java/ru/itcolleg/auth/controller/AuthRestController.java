@@ -1,16 +1,14 @@
 package ru.itcolleg.auth.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.itcolleg.auth.dto.LoginRequest;
 import ru.itcolleg.auth.dto.LoginResponse;
 import ru.itcolleg.auth.service.AuthService;
-import ru.itcolleg.auth.service.RequiresTokenValidation;
 import ru.itcolleg.auth.service.TokenService;
 import ru.itcolleg.user.exception.UserLoginCredentialsNotCorrect;
 import ru.itcolleg.user.exception.UserNotFoundException;
@@ -23,48 +21,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.Optional;
 
-/*
-   This annotation is used to indicate that the class is a controller that handles HTTP requests.
-   In other words, it's designed for building RESTful web services.
-
-   RESTful stands for Representational State Transfer,
-   and it is an architectural style for designing networked applications.
-
-   Key principles of RESTful architecture include:
-
-    1) Statelessness
-        Each request from a client to a server must contain all the information needed to understand and process the request.
-        The server should not store any information about the client's state between requests.
-
-    2) Client-Server Architecture
-        The client and server are separate entities that communicate over a network.
-        The client is responsible for the user interface and user experience,
-        while the server is responsible for processing requests and managing resources.
-
-    3) Resource-Based
-        Resources, which can be data or services, are identified by URIs (Uniform Resource Identifiers).
-        Each resource can be manipulated using standard HTTP methods (GET, POST, PUT, DELETE).
-
-    4) Representation
-        Resources can have different representations, such as JSON or XML.
-        Clients interact with resources by exchanging these representations.
-
-    5) Cacheability
-        Responses from the server can be explicitly marked as cacheable or non-cacheable,
-        allowing clients to cache responses and improve performance.
+/**
+ * Controller class handling authentication-related endpoints.
+ * Класс контроллера, обрабатывающий конечные точки, связанные с аутентификацией.
  */
 @RestController
-
-/*
-  This annotation is used to map web requests to specific methods or classes.
-  In this case, it specifies that the controller will handle requests that start with "/api/auth".
-  For example, if a client sends a request to http://yourdomain.com/api/auth/someEndpoint,
-  it will be handled by a method in this controller that is annotated with additional @RequestMapping annotations.
- */
-
 @RequestMapping("/api/auth")
 public class AuthRestController {
-
+    private static final Logger logger = LoggerFactory.getLogger(AuthRestController.class);
     private final UserService userService;
     private final AuthService authService;
     private final TokenService tokenService;
@@ -76,87 +40,104 @@ public class AuthRestController {
         this.tokenService = tokenService;
     }
 
+    /**
+     * Endpoint for refreshing authentication token.
+     * Точка доступа для обновления аутентификационного токена.
+     *
+     * @param userId User ID for which the token needs to be refreshed.
+     *               Идентификатор пользователя, для которого необходимо обновить токен.
+     * @return ResponseEntity with the new access token.
+     * ResponseEntity с новым токеном доступа.
+     */
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestHeader("X-UserId") Long userId) {
+        logger.info("Запрос на обновление токена: userId={}", userId);
         try {
             String newAccessToken = tokenService.generateToken(userId);
             userService.updateUserPublicKey(userId, newAccessToken);
             return ResponseEntity.ok(Collections.singletonMap("token", newAccessToken));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error refreshing token");
+            logger.error("Ошибка обновления токена: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка обновления токена");
         }
     }
 
+    /**
+     * Endpoint for user login.
+     * Точка доступа для входа пользователя.
+     *
+     * @param loginRequest Login request containing user credentials.
+     *                     Запрос на вход, содержащий учетные данные пользователя.
+     * @return ResponseEntity with the user's authentication token.
+     * ResponseEntity с аутентификационным токеном пользователя.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        logger.info("Запрос на вход пользователя: {}", loginRequest.getEmail());
         try {
-            // Step 1: Authenticate user credentials
             boolean loggedIn = authService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
 
-            // Step 2: If authentication is successful
             if (loggedIn) {
-                // Step 3: Get user information from a database based on the provided email
                 Optional<User> optionalUser = userService.getUserByEmail(loginRequest.getEmail());
 
-                // Step 4: If user exists
                 if (optionalUser.isPresent()) {
-                    // Step 5: Generate a token and update user public key
-                    String token = tokenService.generateToken(optionalUser.get().getUserId());
-                    userService.updateUserPublicKey(optionalUser.get().getUserId(), tokenService.getEncodedPublicKey());
+                    String token = tokenService.generateToken(optionalUser.get().getId());
+                    userService.updateUserPublicKey(optionalUser.get().getId(), tokenService.getEncodedPublicKey());
 
                     LoginResponse response = new LoginResponse();
                     response.setFirstname(optionalUser.get().getFirstname());
                     response.setLastname(optionalUser.get().getLastname());
                     response.setToken(token);
 
-                    // Step 6: Return response with the token
                     return ResponseEntity.ok(response);
                 } else {
-                    // Step 7: Handle the case where user information is not available
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User information not available");
+                    logger.error("Информация о пользователе недоступна");
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Информация о пользователе недоступна");
                 }
             }
 
-            // Step 8: Handle the case where authentication failed
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
+            logger.error("Ошибка аутентификации");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ошибка аутентификации");
         } catch (UserNotFoundException e) {
-            // Step 9: Handle the case where the user is not found
+            logger.error("Пользователь не найден: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (UserLoginCredentialsNotCorrect e) {
-            // Step 10: Handle the case where login credentials are incorrect
+            logger.error("Неверные учетные данные: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            // Step 11: Handle unexpected exceptions
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+            logger.error("Внутренняя ошибка сервера: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера");
         }
     }
 
+    /**
+     * Endpoint for user logout.
+     * Точка доступа для выхода пользователя.
+     *
+     * @param request  HttpServletRequest object.
+     *                 Объект HttpServletRequest.
+     * @param response HttpServletResponse object.
+     *                 Объект HttpServletResponse.
+     * @return ResponseEntity indicating the status of the logout operation.
+     * ResponseEntity, указывающий статус операции выхода из системы.
+     */
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        // Step 1: Get all cookies from the request
+        logger.info("Запрос на выход пользователя");
         Cookie[] cookies = request.getCookies();
 
-        // Step 2: Check if cookies are present
         if (cookies != null) {
-            // Step 3: Loop through each cookie
             for (Cookie cookie : cookies) {
-                // Step 4: Check if the cookie is the "jwtToken"
                 if ("jwtToken".equals(cookie.getName())) {
-                    // Step 5: Immediately delete a cookie by setting its maxAge to 0 seconds
                     cookie.setMaxAge(0);
-                    // Setting path to "/" means the cookie is valid for the entire domain (http://localhost:8080/)
                     cookie.setPath("/");
-                    // The modified cookie is then added to the HTTP response,
-                    // ensuring that the client's browser receives and processes the updated cookie, effectively deleting it.
-                    // TODO: delete cookie in frontend after this request
                     response.addCookie(cookie);
-                    // Step 6: Return a successful response indicating logout
-                    return ResponseEntity.ok("Logout successful");
+                    return ResponseEntity.ok("Выход успешно выполнен");
                 }
             }
         }
 
-        // Step 7: Return a response indicating the user is not logged in
-        return ResponseEntity.ok("User not logged in");
+        logger.error("Пользователь не вошел в систему");
+        return ResponseEntity.ok("Пользователь не вошел в систему");
     }
 }

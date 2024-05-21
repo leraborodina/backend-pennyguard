@@ -1,16 +1,24 @@
 package ru.itcolleg.transaction.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+/**
+ * DTO class representing a financial transaction.
+ * Класс DTO, представляющий финансовую транзакцию.
+ */
 public class Transaction {
     private String date;
     private String time;
     private String description;
     private double amount;
 
+    /**
+     * Constructs a Transaction object with the specified attributes.
+     * Создает объект транзакции с указанными атрибутами.
+     *
+     * @param date        The date of the transaction
+     * @param time        The time of the transaction
+     * @param description The description of the transaction
+     * @param amount      The amount of the transaction
+     */
     public Transaction(String date, String time, String description, double amount) {
         this.date = date;
         this.time = time;
@@ -18,66 +26,83 @@ public class Transaction {
         this.amount = amount;
     }
 
+    /**
+     * Gets the date of the transaction.
+     * Возвращает дату транзакции.
+     *
+     * @return The date of the transaction
+     */
     public String getDate() {
         return date;
     }
 
+    /**
+     * Sets the date of the transaction.
+     * Устанавливает дату транзакции.
+     *
+     * @param date The date to set
+     */
     public void setDate(String date) {
         this.date = date;
     }
 
+    /**
+     * Gets the time of the transaction.
+     * Возвращает время транзакции.
+     *
+     * @return The time of the transaction
+     */
     public String getTime() {
         return time;
     }
 
+    /**
+     * Sets the time of the transaction.
+     * Устанавливает время транзакции.
+     *
+     * @param time The time to set
+     */
     public void setTime(String time) {
         this.time = time;
     }
 
+    /**
+     * Gets the description of the transaction.
+     * Возвращает описание транзакции.
+     *
+     * @return The description of the transaction
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets the description of the transaction.
+     * Устанавливает описание транзакции.
+     *
+     * @param description The description to set
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Gets the amount of the transaction.
+     * Возвращает сумму транзакции.
+     *
+     * @return The amount of the transaction
+     */
     public double getAmount() {
         return amount;
     }
 
+    /**
+     * Sets the amount of the transaction.
+     * Устанавливает сумму транзакции.
+     *
+     * @param amount The amount to set
+     */
     public void setAmount(double amount) {
         this.amount = amount;
-    }
-
-    public static List<Transaction> parseTransactions(String text) {
-        List<Transaction> transactions = new ArrayList<>();
-        // Define the pattern to match dates, amounts, and signs
-        //Pattern pattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})\\s+.*?([+-]?\\d{1,3}(?:\\s*\\d{1,3})*(?:[,.]\\d{2})?)\\s*RUB.*?([+-]?\\d{1,3}(?:\\s*\\d{1,3})*(?:[,.]\\d{2})?)\\s*RUB");
-        String dateRegex = "(\\d{2}\\.\\d{2}\\.\\d{4})\\s+.*?"; // Part 1: Date
-        String amount1Regex = "([-+]?\\s*\\d{1,3}(?:[\\s.,]\\d{3})*(?:[,.]\\d{2})?)\\s*RUB\\s*.*?";
-        String amount2Regex = "([-+]?\\s*\\d{1,3}(?:[\\s.,]\\d{3})*(?:[,.]\\d{2})?)\\s*RUB"; // Part 3: Amount 2
-        String descriptionRegex = "([^\\d.]+(?:\\s*[*].*?)?)";
-
-        Pattern pattern = Pattern.compile(dateRegex + amount1Regex + amount2Regex + descriptionRegex);
-
-        // Create a matcher to find the pattern in the text
-        Matcher matcher = pattern.matcher(text);
-        int count = 0;
-
-        // Iterate through matches and create transactions
-        while (matcher.find()) {
-            String date = matcher.group(1);
-            String amount1 = matcher.group(2).trim();
-            String amount2 = matcher.group(3).trim();
-            String details = matcher.group(4).trim();
-            String transactionInfo = amount1 + " " + amount2 + " " + details;
-
-            // Create a Transaction object and add it to the list
-            System.out.println(date + " " + transactionInfo);
-            count++;
-        }
-        System.out.println(count);
-        return transactions;
     }
 }

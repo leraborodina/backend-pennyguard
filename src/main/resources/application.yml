@@ -3,11 +3,15 @@ spring:
   datasource:
     url: jdbc:sqlserver://LAPTOP-LJRLVS6G:1433;databaseName=pennyguard
     username: sa
-    # Database password
     password: 123
-    # JDBC driver class name for SQL Server
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-
+  flyway:
+    repair: true
+    enabled: true
+    locations: classpath:db/migration
+    baselineOnMigrate: true
+    connectRetries: 3
+    connectRetriesInterval: 600000
   # JPA (Java Persistence API) configuration
   jpa:
     hibernate:
@@ -26,4 +30,4 @@ spring:
 # Application-specific configurations
 app:
   # JWT (JSON Web Token) expiration time in milliseconds
-  jwtExpirationMs: 9000000
+  jwtExpirationMs: 900000000

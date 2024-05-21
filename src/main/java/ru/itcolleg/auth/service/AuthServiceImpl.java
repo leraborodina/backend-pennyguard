@@ -1,5 +1,7 @@
 package ru.itcolleg.auth.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,8 +12,13 @@ import ru.itcolleg.user.repository.UserRepository;
 
 import java.util.Optional;
 
+/**
+ * Реализация интерфейса AuthService для аутентификации пользователей.
+ */
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -24,28 +31,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean authenticateUser(String email, String password) throws UserNotFoundException, UserLoginCredentialsNotCorrect {
-        // Step 1: Retrieve user information by email from the repository
+        logger.info("Аутентификация пользователя с адресом электронной почты: {}", email);
         Optional<User> optionalUser = userRepository.findByEmail(email);
-
-        // Step 2: Check if the user is found in the repository
         if (optionalUser.isPresent()) {
-            // Step 3: Get the user object
             User user = optionalUser.get();
-
-            // Step 4: Retrieve the stored hashed password
-            String hashedPwd = user.getPassword();
-
-            // Step 5: Use the PasswordEncoder to check if the provided password matches the stored hashed password
-            if (passwordEncoder.matches(password, hashedPwd)) {
-                // Step 6: If passwords match, authentication is successful
+            String hashedPassword = user.getPassword();
+            if (passwordEncoder.matches(password, hashedPassword)) {
                 return true;
             } else {
-                // Step 7: If passwords do not match, throw an exception
-                throw new UserLoginCredentialsNotCorrect("Password is wrong.");
+                throw new UserLoginCredentialsNotCorrect("Неверный пароль.");
             }
         } else {
-            // Step 8: If user is not found, throw an exception
-            throw new UserNotFoundException("User not found for email: " + email);
+            throw new UserNotFoundException("Пользователь с адресом электронной почты не найден: " + email);
         }
     }
 }

@@ -2,6 +2,7 @@ package ru.itcolleg.auth.dto;
 
 /**
  * Represents the request containing user login credentials.
+ * Представляет запрос, содержащий учетные данные пользователя.
  */
 public class LoginRequest {
 
@@ -10,6 +11,7 @@ public class LoginRequest {
 
     /**
      * Get the user's email address.
+     * Получить адрес электронной почты пользователя.
      *
      * @return The email address.
      */
@@ -19,6 +21,7 @@ public class LoginRequest {
 
     /**
      * Set the user's email address.
+     * Установить адрес электронной почты пользователя.
      *
      * @param email The email address to set.
      */
@@ -28,6 +31,7 @@ public class LoginRequest {
 
     /**
      * Get the user's password.
+     * Получить пароль пользователя.
      *
      * @return The password.
      */
@@ -37,6 +41,7 @@ public class LoginRequest {
 
     /**
      * Set the user's password.
+     * Установить пароль пользователя.
      *
      * @param password The password to set.
      */

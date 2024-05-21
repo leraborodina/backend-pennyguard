@@ -5,6 +5,7 @@ import javax.persistence.*;
 
 /**
  * Entity class representing a User in the system.
+ * Класс-сущность, представляющий пользователя в системе.
  */
 @Entity
 @Table(name = "[user]", schema = "[dbo]")
@@ -31,11 +32,11 @@ public class User {
     public User() {
     }
 
-    public Long getUserId() {
+    public Long getId() {
         return this.id;
     }
 
-    public void setUserId(Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

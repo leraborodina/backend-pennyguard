@@ -1,31 +1,18 @@
 package ru.itcolleg.transaction.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 public class TransactionDTO {
     private Long id;
     private Long userId;
     private Long categoryId;
     private Long typeId;
-    private OffsetDateTime createdAt;
+    private String createdAt;
     private Double amount;
     private String purpose;
     private Boolean regular;
 
     public TransactionDTO() {
-    }
-
-    public TransactionDTO(Long id, Long userId, Long categoryId, Long typeId, OffsetDateTime createdAt, Double amount, String purpose, Boolean regular) {
-        this.id = id;
-        this.userId = userId;
-        this.categoryId = categoryId;
-        this.typeId = typeId;
-        this.createdAt = createdAt; // Set createdAt directly
-        this.amount = amount;
-        this.purpose = purpose;
-        this.regular = regular;
     }
 
     public Long getId() {
@@ -60,11 +47,11 @@ public class TransactionDTO {
         this.typeId = typeId;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -92,6 +79,3 @@ public class TransactionDTO {
         this.regular = regular;
     }
 }
-
-
-

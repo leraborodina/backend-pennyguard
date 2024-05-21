@@ -1,5 +1,8 @@
 package ru.itcolleg.user.service;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,127 +16,119 @@ import ru.itcolleg.user.repository.UserRepository;
 
 import java.util.Optional;
 
+import static ru.itcolleg.user.util.UserConstants.*;
+
 /**
- * Implementation of the UserService interface providing user-related operations.
+ * Service implementation of the UserService interface, providing operations related to users.
+ * <p>
+ * Реализация сервиса интерфейса UserService, предоставляющая операции, связанные с пользователями.
  */
 @Service
 public class UserServiceImpl implements UserService {
-
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     @Override
     public Optional<LoginResponse> saveUser(UserDTO userDTO) throws UserAlreadyExistsException {
-        // Step 1: Extract email from UserDTO
-        String email = userDTO.getEmail();
+        logger.info("Начало процесса сохранения пользователя");
 
-        // Step 2: Check if the email already exists in the database
+        String email = userDTO.getEmail();
         if (userRepository.existsByEmail(email)) {
-            // Step 3: Throw UserAlreadyExistsException if email exists
-            throw new UserAlreadyExistsException("Email already exists");
+            logger.error(EMAIL_ALREADY_EXISTS + " {}", email);
+            throw new UserAlreadyExistsException(EMAIL_ALREADY_EXISTS);
         }
 
-        // Step 4: Create a new User entity
-        User user = new User();
-
-        // Step 5: Set user properties from UserDTO
-        user.setFirstname(userDTO.getFirstname());
-        user.setLastname(userDTO.getLastname());
-        user.setEmail(userDTO.getEmail());
-
-        // Step 6: Hash the password using BCryptPasswordEncoder
         String hashedPassword = passwordEncoder.encode(userDTO.getPassword());
+
+        User user = userMapper.mapUserDtoToEntity(userDTO);
         user.setPassword(hashedPassword);
 
-        // Step 7: Save the user in the database
-        User dbUser = userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        // Step 8: Map the saved user to LoginResponse using UserMapper
-        LoginResponse savedUser = UserMapper.mapUserToUserResponse(dbUser);
+        LoginResponse userDetails = userMapper.mapUserToLoginResponse(savedUser);
 
-        // Step 9: Return an Optional containing the saved user, or empty if null
-        return Optional.ofNullable(savedUser);
+        logger.info("Процесс сохранения пользователя завершен");
+        return Optional.ofNullable(userDetails);
     }
 
     @Override
     public Optional<User> getUserByEmail(String email) throws UserNotFoundException {
-        // Step 1: Retrieve the user from the repository using the provided email
+        logger.info("Начало процесса извлечения пользователя по электронной почте");
+
         Optional<User> userOptional = userRepository.findByEmail(email);
 
-        // Step 2: Check if the user is present in the Optional
         if (userOptional.isPresent()) {
-            // Step 3: Return the user if found
+            logger.info("Процесс извлечения пользователя по электронной почте завершен");
             return userOptional;
         } else {
-            // Step 4: If the user is not found, throw UserNotFoundException
-            throw new UserNotFoundException("User not found for email: " + email);
+            logger.error(USER_NOT_FOUND_EMAIL + " {}", email);
+            throw new UserNotFoundException(USER_NOT_FOUND_EMAIL);
         }
     }
 
-
     @Override
     public String getPublicKeyByEmail(String email) throws UserNotFoundException {
-        try {
-            // Step 1: Retrieve the user from the repository using the provided email
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException("User not found for email: " + email));
+        logger.info("Начало процесса извлечения открытого ключа по электронной почте");
 
-            // Step 2: Retrieve and return the public key
-            String publicKey = user.getPublicKey(); // Adjust this based on your actual User entity
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    logger.error(USER_NOT_FOUND_EMAIL + " {}", email);
+                    return new UserNotFoundException(USER_NOT_FOUND_EMAIL + " " + email);
+                });
 
-            // Step 3: Check if the retrieved public key is not null or empty
-            if (publicKey == null || publicKey.isEmpty()) {
-                throw new UserNotFoundException("Public key not found for user with email: " + email);
-            }
+        String publicKey = Optional.ofNullable(user.getPublicKey())
+                .orElseThrow(() -> new IllegalStateException(PUBLIC_KEY_NOT_FOUND_EMAIL));
 
-            // Step 4: Return the retrieved public key
-            return publicKey;
-        } catch (UserNotFoundException e) {
-            // Step 5: Handle and rethrow the exception if needed
-            throw e;
-        } catch (Exception e) {
-            // Step 6: Handle unexpected exceptions during public key retrieval
-            // Log or perform specific actions for unexpected exceptions
-            throw new UserNotFoundException("Error retrieving public key for this user: " + e);
-        }
+        logger.info("Процесс извлечения открытого ключа по электронной почте завершен");
+        return publicKey;
     }
 
     @Override
     public void updateUserPublicKey(Long userId, String publicKey) {
-        try {
-            // Step 1: Check if the provided user ID is not null
-            if (userId != null) {
-                // Step 2: Fetch the user by ID and update the user's public key
-                Optional<User> optionalUser = this.userRepository.findById(userId);
+        logger.info("Начало процесса обновления открытого ключа пользователя");
 
-                if (optionalUser.isPresent()) {
-                    User user = optionalUser.get();
-                    user.setPublicKey(publicKey);
-                    userRepository.save(user);
-                }
-            } else {
-                // Step 4: Handle the case when the provided user is null
-                throw new IllegalArgumentException("User cannot be null for updating public key");
-            }
-        } catch (IllegalArgumentException e) {
-            // Step 5: Handle and rethrow the IllegalArgumentException if needed
-            throw e;
-        } catch (Exception e) {
-            // Step 6: Handle unexpected exceptions during public key update
-            // Log or perform specific actions for unexpected exceptions
-            throw new RuntimeException("Error updating public key for user", e);
+        if (userId == null) {
+            logger.error(USER_ID_NULL);
+            throw new IllegalArgumentException(USER_ID_NULL);
+        }
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setPublicKey(publicKey);
+            userRepository.save(user);
+            logger.info("Процесс обновления открытого ключа пользователя завершен");
+        } else {
+            logger.error(USER_NOT_FOUND_ID + " {}", userId);
+            throw new RuntimeException(USER_NOT_FOUND_ID + " " + userId);
         }
     }
 
     @Override
-    public Optional<User> getUserById(Long userId) {
-        return userRepository.findById(userId);
-    }
+    public Optional<User> getUserById(Long userId) throws UserNotFoundException {
+        logger.info("Начало процесса извлечения пользователя по идентификатору");
+        if (userId == null) {
+            logger.error(USER_ID_NULL);
+            throw new IllegalArgumentException(USER_ID_NULL);
+        }
 
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            logger.info("Процесс извлечения пользователя по идентификатору завершен");
+            return userOptional;
+        } else {
+            logger.error(USER_NOT_FOUND_ID + " " + userId);
+            throw new UserNotFoundException(USER_NOT_FOUND_ID + " " + userId);
+        }
+    }
 }
+

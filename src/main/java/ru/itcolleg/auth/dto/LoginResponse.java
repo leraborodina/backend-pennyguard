@@ -2,6 +2,7 @@ package ru.itcolleg.auth.dto;
 
 /**
  * Represents the response containing user information along with an authentication token.
+ * Представляет ответ, содержащий информацию о пользователе вместе с токеном аутентификации.
  */
 public class LoginResponse {
 
@@ -11,12 +12,14 @@ public class LoginResponse {
 
     /**
      * Default constructor.
+     * Конструктор по умолчанию.
      */
     public LoginResponse() {
     }
 
     /**
      * Get the user's first name.
+     * Получить имя пользователя.
      *
      * @return The first name.
      */
@@ -26,6 +29,7 @@ public class LoginResponse {
 
     /**
      * Set the user's first name.
+     * Установить имя пользователя.
      *
      * @param firstname The first name to set.
      */
@@ -35,6 +39,7 @@ public class LoginResponse {
 
     /**
      * Get the user's last name.
+     * Получить фамилию пользователя.
      *
      * @return The last name.
      */
@@ -44,6 +49,7 @@ public class LoginResponse {
 
     /**
      * Set the user's last name.
+     * Установить фамилию пользователя.
      *
      * @param lastname The last name to set.
      */
@@ -53,6 +59,7 @@ public class LoginResponse {
 
     /**
      * Get the authentication token.
+     * Получить аутентификационный токен.
      *
      * @return The authentication token.
      */
@@ -62,6 +69,7 @@ public class LoginResponse {
 
     /**
      * Set the authentication token.
+     * Установить аутентификационный токен.
      *
      * @param token The authentication token to set.
      */
@@ -71,6 +79,7 @@ public class LoginResponse {
 
     /**
      * Override the toString() method to provide a string representation of the object.
+     * Переопределение метода toString() для предоставления строкового представления объекта.
      *
      * @return A string representation of the object.
      */

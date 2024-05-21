@@ -42,12 +42,6 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
-        <!-- Microsoft SQL Server JDBC Driver -->
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <!-- Spring Boot Configuration Processor -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -82,7 +76,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>9.4.0.jre11</version> <!-- or the latest version available -->
+            <scope>runtime</scope>
         </dependency>
         <!-- JWT (JSON Web Token) dependencies -->
         <dependency>
@@ -96,6 +90,14 @@
             <version>0.11.2</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Microsoft JDBC Driver for SQL Server -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>9.4.1.jre8</version>
+        </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
@@ -159,17 +161,14 @@
             <version>1.4.2.Final</version> <!-- Replace with the latest version -->
             <scope>provided</scope>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-messaging</artifactId>
-        </dependency>
-
     </dependencies>
 
     <!-- Define project build configuration -->

@@ -1,11 +1,17 @@
 package ru.itcolleg.goal.dto;
+
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime; // Change OffsetDateTime to LocalDateTime
+
+/**
+ * DTO объект для финансовой цели.
+ * DTO object for a financial goal.
+ */
 public class FinancialGoalDTO {
     private Long id;
     private String name;
     private BigDecimal sum;
-    private OffsetDateTime startDate;
+    private LocalDateTime startDate; // Change OffsetDateTime to LocalDateTime
     private Integer endDate;
     private Long userId;
 
@@ -33,11 +39,11 @@ public class FinancialGoalDTO {
         this.sum = sum;
     }
 
-    public OffsetDateTime getStartDate() {
+    public LocalDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(OffsetDateTime startDate) {
+    public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
     }
 

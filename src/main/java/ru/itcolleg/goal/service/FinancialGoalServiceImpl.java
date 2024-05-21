@@ -1,73 +1,92 @@
 package ru.itcolleg.goal.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.itcolleg.goal.dto.FinancialGoalDTO;
+import ru.itcolleg.goal.exception.GoalNotFoundException;
 import ru.itcolleg.goal.mapper.FinancialGoalMapper;
 import ru.itcolleg.goal.model.FinancialGoal;
 import ru.itcolleg.goal.repository.FinancialGoalRepository;
-import ru.itcolleg.transaction.model.Transaction;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Сервис для управления финансовыми целями.
+ * Service for managing financial goals.
+ */
 @Service
 public class FinancialGoalServiceImpl implements FinancialGoalService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FinancialGoalServiceImpl.class);
 
-    private final FinancialGoalRepository repository;
+    private final FinancialGoalRepository financialGoalRepository;
+    private final FinancialGoalMapper financialGoalMapper;
 
-
-    private final FinancialGoalMapper mapper;
-
-    public FinancialGoalServiceImpl(FinancialGoalRepository repository, FinancialGoalMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
+    public FinancialGoalServiceImpl(FinancialGoalRepository financialGoalRepository, FinancialGoalMapper financialGoalMapper) {
+        this.financialGoalRepository = financialGoalRepository;
+        this.financialGoalMapper = financialGoalMapper;
     }
 
     @Override
-    public List<FinancialGoalDTO> getAllGoals(Long userId) {
+    public List<FinancialGoalDTO> getAllUserGoals(Long userId) {
+        logger.info("Получение всех финансовых целей для пользователя с ID: {}", userId);
+
         if (userId == null) {
+            logger.warn("Идентификатор пользователя не указан.");
             return Collections.emptyList();
         }
 
-        List<FinancialGoal> foundGoals = repository.findGoalsByUserId(userId);
-
-        return foundGoals.stream().map(goal -> mapper.toDTO(goal)).collect(Collectors.toList());
+        List<FinancialGoal> foundGoals = financialGoalRepository.findGoalsByUserId(userId);
+        return foundGoals.stream().map(financialGoalMapper::toDTO).collect(Collectors.toList());
     }
+
 
     @Override
     public FinancialGoalDTO getGoalById(Long id) {
-        return mapper.toDTO(repository.findById(id).orElse(null));
+        logger.info("Получение финансовой цели по ID: {}", id);
+        FinancialGoal goal = financialGoalRepository.findById(id)
+                .orElseThrow(() -> new GoalNotFoundException("Финансовая цель с ID " + id + " не найдена"));
+
+        return financialGoalMapper.toDTO(goal);
     }
 
+
     @Override
-    public FinancialGoalDTO createGoal(FinancialGoalDTO goalDTO) {
-        FinancialGoal financialGoal = mapper.toEntity(goalDTO);
+    public FinancialGoalDTO createGoalForUser(FinancialGoalDTO goalDTO, Long userId) {
+        logger.info("Создание новой финансовой цели для пользователя с ID: {}", userId);
+        FinancialGoal financialGoal = financialGoalMapper.toEntity(goalDTO);
 
-        OffsetDateTime startDate = OffsetDateTime.now();
-        OffsetDateTime endDate = startDate.plusMonths(goalDTO.getEndDate());
+        LocalDateTime startDate = LocalDateTime.now();
+        LocalDateTime endDate = startDate.plusMonths(goalDTO.getEndDate());
 
+        financialGoal.setUserId(userId);
         financialGoal.setStartDate(startDate);
         financialGoal.setEndDate(endDate);
 
-        return mapper.toDTO(repository.save(financialGoal));
+        return financialGoalMapper.toDTO(financialGoalRepository.save(financialGoal));
     }
 
     @Override
     public FinancialGoalDTO updateGoal(Long id, FinancialGoalDTO goalDTO) {
-        if (repository.existsById(id)) {
-            goalDTO.setId(id);
-            return mapper.toDTO(repository.save(mapper.toEntity(goalDTO)));
+        logger.info("Обновление финансовой цели с ID: {}", id);
+
+        if (!financialGoalRepository.existsById(id)) {
+            throw new GoalNotFoundException("Финансовая цель с ID " + id + " не найдена");
         }
-        return null;
+
+        goalDTO.setId(id);
+        FinancialGoal updatedGoal = financialGoalRepository.save(financialGoalMapper.toEntity(goalDTO));
+        return financialGoalMapper.toDTO(updatedGoal);
     }
 
     @Override
-    public void deleteGoal(Long id) {
-        repository.deleteById(id);
+    public void deleteGoalById(Long id) {
+        logger.info("Удаление финансовой цели по ID: {}", id);
+        financialGoalRepository.deleteById(id);
     }
 }

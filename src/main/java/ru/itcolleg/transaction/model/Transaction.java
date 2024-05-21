@@ -1,13 +1,19 @@
 package ru.itcolleg.transaction.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "[transaction]", schema = "[dbo]")
 public class Transaction {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    private static final Logger logger = LoggerFactory.getLogger(Transaction.class);
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "user_id")
@@ -20,17 +26,13 @@ public class Transaction {
     private Long typeId;
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     private Double amount;
 
     private String purpose;
 
     private Boolean regular;
-
-    public Transaction() {
-
-    }
 
     public Long getId() {
         return id;
@@ -64,11 +66,11 @@ public class Transaction {
         this.typeId = typeId;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) { // Adjust setter to accept OffsetDateTime
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
