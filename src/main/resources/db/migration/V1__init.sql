@@ -56,7 +56,7 @@ END;
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'category_limit')
 BEGIN
     CREATE TABLE category_limit (
-        limit_id BIGINT IDENTITY PRIMARY KEY,
+        id BIGINT IDENTITY PRIMARY KEY,
         user_id BIGINT NOT NULL,
         category_id BIGINT,
         amount FLOAT NOT NULL,

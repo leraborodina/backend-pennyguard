@@ -7,12 +7,12 @@ import javax.persistence.*;
  * Entity class representing a spending limit for categories.
  */
 @Entity
-@Table(name = "[limit]", schema = "[dbo]")
+@Table(name = "[category_limit]", schema = "[dbo]")
 public class CategoryLimit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long limitId;
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -32,18 +32,18 @@ public class CategoryLimit {
      *
      * @return The spending limit ID for categories
      */
-    public Long getLimitId() {
-        return limitId;
+    public Long getId() {
+        return id;
     }
 
     /**
      * Установить идентификатор ограничения расходов для категорий.
      * Set the spending limit ID for categories.
      *
-     * @param limitId The spending limit ID for categories to set
+     * @param id The spending limit ID for categories to set
      */
-    public void setLimitId(Long limitId) {
-        this.limitId = limitId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
