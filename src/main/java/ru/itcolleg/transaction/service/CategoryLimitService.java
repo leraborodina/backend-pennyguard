@@ -46,7 +46,7 @@ public interface CategoryLimitService {
      *
      * @param limitDTO Category limit DTO.
      */
-    void updateCategoryLimit(CategoryLimitDTO limitDTO);
+    void updateCategoryLimit(CategoryLimitDTO limitDTO, Long userId);
 
     /**
      * Deletes a category limit by its ID.

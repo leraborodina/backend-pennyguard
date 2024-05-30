@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,6 +99,22 @@ public class CategoryRestController {
         }
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<?> getCategoriesByUserId(@RequestHeader("Authorization") String token) {
+        logger.info("Получение всех категорий");
+        try {
+            Long userId = tokenService.extractUserIdFromToken(token);
+            List<Category> categories = categoryService.getCategoriesByUserId(userId);
+            return ResponseEntity.ok(categories);
+        } catch (DataAccessException e) {
+            logger.error("Ошибка базы данных при получении всех категорий", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка базы данных");
+        } catch (Exception e) {
+            logger.error("Произошла ошибка при получении всех категорий", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера");
+        }
+    }
+
     /**
      * Сохраняет новую категорию.
      *
@@ -110,12 +127,14 @@ public class CategoryRestController {
     public ResponseEntity<?> saveCategory(@RequestBody Category category, @RequestHeader("Authorization") String token) {
         logger.info("Сохранение категории: {}", category);
         try {
-            Optional<Category> savedCategory = categoryService.save(category);
+            Long userId = tokenService.extractUserIdFromToken(token);
+            Optional<Category> savedCategory = categoryService.save(category, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedCategory);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Категория уже существует.");
         } catch (Exception e) {
-            logger.error("Произошла ошибка при сохранении категории: {}", category, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера");
         }
     }

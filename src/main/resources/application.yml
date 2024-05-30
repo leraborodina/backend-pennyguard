@@ -17,7 +17,7 @@ spring:
     hibernate:
       # Automatic DDL (Data Definition Language) generation strategy:
       # - create: creates database schema on startup (note: this may drop existing schema)
-      ddl-auto: update
+      ddl-auto: none
       # Enable SQL logging for better debugging
       show-sql: true
     properties:

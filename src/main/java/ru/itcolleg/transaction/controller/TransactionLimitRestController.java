@@ -116,7 +116,8 @@ public class TransactionLimitRestController {
             if (!id.equals(limitDTO.getId())) {
                 return ResponseEntity.badRequest().build();
             }
-            categoryLimitService.updateCategoryLimit(limitDTO);
+            Long userId = tokenService.extractUserIdFromToken(token);
+            categoryLimitService.updateCategoryLimit(limitDTO, userId);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();

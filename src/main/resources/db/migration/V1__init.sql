@@ -1,3 +1,4 @@
+-- Ensure the pennyguard database exists
 IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = 'pennyguard')
 BEGIN
     CREATE DATABASE pennyguard;
@@ -5,6 +6,7 @@ END;
 
 USE pennyguard;
 
+-- Ensure the user table exists
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'user')
 BEGIN
     CREATE TABLE [user] (
@@ -17,7 +19,7 @@ BEGIN
     );
 END;
 
--- Create the transaction_type table first
+-- Create the transaction_type table if it doesn't exist
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'transaction_type')
 BEGIN
     CREATE TABLE transaction_type (
@@ -28,6 +30,7 @@ BEGIN
     INSERT INTO transaction_type (type) VALUES (N'доходы'), (N'расходы');
 END;
 
+-- Create the category table if it doesn't exist and add a foreign key for transaction_type
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'category')
 BEGIN
     CREATE TABLE category (
@@ -35,24 +38,27 @@ BEGIN
         name NVARCHAR(100) NOT NULL,
         is_default BIT NOT NULL,
         user_id BIGINT,
+        type_id BIGINT NOT NULL,
         CONSTRAINT name_user_id_unique UNIQUE (name, user_id),
-        FOREIGN KEY (user_id) REFERENCES [user](id)
+        FOREIGN KEY (user_id) REFERENCES [user](id),
+        FOREIGN KEY (type_id) REFERENCES transaction_type(id)
     );
 
     -- Inserting some categories with names in Russian
-    INSERT INTO category (name, is_default, user_id) VALUES
-    (N'Еда', 1, null),
-    (N'Путешествия', 1, null),
-    (N'Здоровье', 1, null),
-    (N'Красота', 1, null),
-    (N'Транспорт', 1, null),
-    (N'Развлечения', 1, null),
-    (N'Покупки', 1, null),
-    (N'Образование', 1, null),
-    (N'Банк', 1, null),
-    (N'Персональное', 1, null);
+    INSERT INTO category (name, is_default, user_id, type_id) VALUES
+    (N'Еда', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Путешествия', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Здоровье', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Красота', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Транспорт', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Развлечения', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Покупки', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Образование', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
+    (N'Банк', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'доходы')),
+    (N'Персональное', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы'));
 END;
 
+-- Ensure the category_limit table exists
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'category_limit')
 BEGIN
     CREATE TABLE category_limit (
@@ -66,7 +72,7 @@ BEGIN
     );
 END;
 
--- Create the transaction table after transaction_type table
+-- Create the transaction table if it doesn't exist
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'transaction')
 BEGIN
     CREATE TABLE [transaction] (
@@ -77,10 +83,11 @@ BEGIN
         created_at DATETIME NOT NULL,
         FOREIGN KEY (user_id) REFERENCES [user](id),
         FOREIGN KEY (category_id) REFERENCES category(id),
-        FOREIGN KEY (type_id) REFERENCES transaction_type(id) -- Reference transaction_type table
+        FOREIGN KEY (type_id) REFERENCES transaction_type(id)
     );
 END;
 
+-- Ensure the notification table exists
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'notification')
 BEGIN
     CREATE TABLE notification (
@@ -91,6 +98,7 @@ BEGIN
     );
 END;
 
+-- Ensure the financial_goal table exists
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'financial_goal')
 BEGIN
     CREATE TABLE financial_goal (

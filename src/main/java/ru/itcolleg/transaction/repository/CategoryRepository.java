@@ -38,5 +38,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      * @param userId The ID of the user
      * @return List of categories
      */
-    List<Category> findByIsDefaultTrueOrUserId(Long userId);
+    List<Category> findByIsDefaultFalseAndUserId(Long userId);
 }

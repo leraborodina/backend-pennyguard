@@ -18,7 +18,7 @@ public interface CategoryService {
      * @param category The category to save.
      * @return Optional containing the saved category.
      */
-    Optional<Category> save(Category category);
+    Optional<Category> save(Category category, Long userId);
 
     /**
      * Retrieves a category by its ID.
@@ -55,4 +55,7 @@ public interface CategoryService {
      * @return List of categories associated with the user.
      */
     List<Category> getAll(Long userId);
+
+
+    List<Category> getCategoriesByUserId(Long userId);
 }

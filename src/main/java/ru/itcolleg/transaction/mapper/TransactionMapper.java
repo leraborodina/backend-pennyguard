@@ -26,7 +26,6 @@ public interface TransactionMapper {
      * @param transaction The Transaction entity
      * @return The corresponding TransactionDTO
      */
-    @Mapping(target = "createdAt", source = "createdAt", dateFormat = "yyyy-MM-dd'T'HH:mm:ss")
     TransactionDTO toTransactionDTO(Transaction transaction);
 
     /**

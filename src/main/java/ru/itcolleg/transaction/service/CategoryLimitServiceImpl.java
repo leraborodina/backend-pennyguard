@@ -157,10 +157,11 @@ public class CategoryLimitServiceImpl implements CategoryLimitService {
     }
 
     @Override
-    public void updateCategoryLimit(CategoryLimitDTO limitDTO) {
+    public void updateCategoryLimit(CategoryLimitDTO limitDTO, Long userId) {
         validateLimitDTO(limitDTO);
         try {
             CategoryLimit limit = categoryLimitMapper.toEntity(limitDTO);
+            limit.setUserId(userId);
             transactionLimitRepository.save(limit);
         } catch (Exception e) {
             handleException("Не удалось обновить предел транзакции", e);
