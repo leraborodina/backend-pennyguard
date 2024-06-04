@@ -23,8 +23,8 @@ public class CategoryLimit {
     @Column(name = "amount", nullable = false)
     private Double amount;
 
-    @Column(name = "salary_day", nullable = false)
-    private Integer salaryDay;
+    @Column(name = "start_day", nullable = false)
+    private Integer startDay;
 
     /**
      * Получить идентификатор ограничения расходов для категорий.
@@ -112,17 +112,17 @@ public class CategoryLimit {
      *
      * @return The salary day
      */
-    public Integer getSalaryDay() {
-        return salaryDay;
+    public Integer getStartDay() {
+        return startDay;
     }
 
     /**
      * Установить день зарплаты.
      * Set the salary day.
      *
-     * @param salaryDay The salary day to set
+     * @param startDay The salary day to set
      */
-    public void setSalaryDay(Integer salaryDay) {
-        this.salaryDay = salaryDay;
+    public void setStartDay(Integer startDay) {
+        this.startDay = startDay;
     }
 }

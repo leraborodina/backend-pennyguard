@@ -204,14 +204,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Double getUserExpensesAfterSetLimits(Long userId, Long categoryId, Integer salaryDay) {
+    public Double getUserExpensesAfterSetLimits(Long userId, Long categoryId, Integer startDay) {
         logger.info("Начало получения расходов пользователя после установления лимита");
         if (userId == null) {
             return null;
         }
         Long expensesTypeId = findExpensesTypeId();
 
-        LocalDateTime startDate = getStartingDateForExpensesSearch(salaryDay);
+        LocalDateTime startDate = getStartingDateForExpensesSearch(startDay);
         LocalDateTime endDate = getEndingDateForExpensesSearch(startDate);
 
         List<Transaction> foundTransactions = findUserExpensesByCategoryInDateRange(userId, expensesTypeId, categoryId, startDate, endDate);
@@ -222,11 +222,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .sum();
     }
 
-    private LocalDateTime getStartingDateForExpensesSearch(Integer salaryDay) {
+    private LocalDateTime getStartingDateForExpensesSearch(Integer createdAt) {
         LocalDateTime currentDateTime = LocalDateTime.now(); // LocalDateTime instead of OffsetDateTime
         int currentYear = currentDateTime.getYear();
         int currentMonth = currentDateTime.getMonthValue();
-        int startDay = salaryDay;
+        int startDay = createdAt;
         return LocalDateTime.of(currentYear, currentMonth, startDay, 0, 0);
     }
 

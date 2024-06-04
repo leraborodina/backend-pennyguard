@@ -9,7 +9,7 @@ public class CategoryLimitDTO {
     private Long id;
     private Long categoryId;
     private Double amount;
-    private Integer salaryDay;
+    private Integer startDay;
 
     /**
      * Retrieves the ID of the transaction limit.
@@ -77,17 +77,17 @@ public class CategoryLimitDTO {
      *
      * @return The salary day
      */
-    public Integer getSalaryDay() {
-        return salaryDay;
+    public Integer getStartDay() {
+        return startDay;
     }
 
     /**
      * Sets the salary day associated with the transaction limit.
      * Устанавливает день зарплаты, связанный с лимитом транзакции.
      *
-     * @param salaryDay The salary day to set
+     * @param startDay The salary day to set
      */
-    public void setSalaryDay(Integer salaryDay) {
-        this.salaryDay = salaryDay;
+    public void setStartDay(Integer startDay) {
+        this.startDay = startDay;
     }
 }

@@ -78,7 +78,7 @@ public class CategoryLimitServiceImpl implements CategoryLimitService {
         int currentYear = currentDateTime.getYear();
         int currentMonth = currentDateTime.getMonthValue();
 
-        int startDay = userLimit.getSalaryDay();
+        int startDay = userLimit.getStartDay();
 
         LocalDateTime startDate = LocalDateTime.of(currentYear, currentMonth, startDay, 0, 0, 0);
 

@@ -66,7 +66,7 @@ BEGIN
         user_id BIGINT NOT NULL,
         category_id BIGINT,
         amount FLOAT NOT NULL,
-        salary_day INT NOT NULL,
+        start_day INT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES [user](id),
         FOREIGN KEY (category_id) REFERENCES category(id)
     );
@@ -81,6 +81,9 @@ BEGIN
         category_id BIGINT NOT NULL,
         type_id BIGINT NOT NULL,
         created_at DATETIME NOT NULL,
+        amount FLOAT NOT NULL,
+        purpose NVARCHAR(255),
+        regular BIT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES [user](id),
         FOREIGN KEY (category_id) REFERENCES category(id),
         FOREIGN KEY (type_id) REFERENCES transaction_type(id)
