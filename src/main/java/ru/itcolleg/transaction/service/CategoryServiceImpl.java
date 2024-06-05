@@ -70,9 +70,9 @@ public class CategoryServiceImpl implements CategoryService {
             throw e; // Re-throw the exception to be handled by the controller
         } catch (DataIntegrityViolationException e) {
             logger.error("Ошибка при сохранении категории: {}", e.getMessage());
-            throw new DuplicateKeyException("Категория уже существует.", e);
+            throw new DuplicateKeyException("Категория уже существует", e);
         } catch (Exception e) {
-            logger.error("Ошибка при сохранении категории: {}", e);
+            logger.error("Ошибка при сохранении категории: {}", e.getMessage());
             throw new RuntimeException("Ошибка при сохранении категории", e);
         }
     }

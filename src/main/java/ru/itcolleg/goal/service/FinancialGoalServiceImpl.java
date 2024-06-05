@@ -10,7 +10,6 @@ import ru.itcolleg.goal.model.FinancialGoal;
 import ru.itcolleg.goal.repository.FinancialGoalRepository;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +61,7 @@ public class FinancialGoalServiceImpl implements FinancialGoalService {
         FinancialGoal financialGoal = financialGoalMapper.toEntity(goalDTO);
 
         LocalDateTime startDate = LocalDateTime.now();
-        LocalDateTime endDate = startDate.plusMonths(goalDTO.getEndDate());
+        LocalDateTime endDate = startDate.plusMonths(goalDTO.getMonthCount());
 
         financialGoal.setUserId(userId);
         financialGoal.setStartDate(startDate);

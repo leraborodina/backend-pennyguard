@@ -24,7 +24,6 @@ public interface FinancialGoalMapper {
      * @return DTO объект финансовой цели
      * The DTO object of financial goal
      */
-    @Mapping(target = "endDate", ignore = true)
     FinancialGoalDTO toDTO(FinancialGoal entity);
 
     /**

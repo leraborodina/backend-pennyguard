@@ -3,6 +3,8 @@ package ru.itcolleg.transaction.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -151,8 +153,15 @@ public class CategoryLimitServiceImpl implements CategoryLimitService {
             CategoryLimit limit = categoryLimitMapper.toEntity(limitDTO);
             limit.setUserId(userId);
             transactionLimitRepository.save(limit);
+        } catch (IllegalArgumentException e) {
+            logger.error("Ошибка при сохранении лимита: {}", e.getMessage());
+            throw e; // Re-throw the exception to be handled by the controller
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Ошибка при сохранении лимита: {}", e.getMessage());
+            throw new DuplicateKeyException("Лимит уже существует", e);
         } catch (Exception e) {
-            handleException("Не удалось установить предел транзакции", e);
+            logger.error("Ошибка при сохранении лимита: {}", e.getMessage());
+            throw new RuntimeException("Ошибка при сохранении категории", e);
         }
     }
 

@@ -68,7 +68,8 @@ BEGIN
         amount FLOAT NOT NULL,
         start_day INT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES [user](id),
-        FOREIGN KEY (category_id) REFERENCES category(id)
+        FOREIGN KEY (category_id) REFERENCES category(id),
+        CONSTRAINT UC_User_Category UNIQUE (user_id, category_id)
     );
 END;
 

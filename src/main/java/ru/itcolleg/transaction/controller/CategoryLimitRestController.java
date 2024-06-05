@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,15 +21,15 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/transaction-limits")
-public class TransactionLimitRestController {
+public class CategoryLimitRestController {
 
-    private static final Logger logger = LoggerFactory.getLogger(TransactionLimitRestController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CategoryLimitRestController.class);
 
     private final CategoryLimitService categoryLimitService;
     private final TokenService tokenService;
 
     @Autowired
-    public TransactionLimitRestController(CategoryLimitService categoryLimitService, TokenService tokenService) {
+    public CategoryLimitRestController(CategoryLimitService categoryLimitService, TokenService tokenService) {
         this.categoryLimitService = categoryLimitService;
         this.tokenService = tokenService;
     }
@@ -87,16 +88,18 @@ public class TransactionLimitRestController {
      */
     @RequiresTokenValidation
     @PostMapping
-    public ResponseEntity<Void> createTransactionLimit(@RequestBody CategoryLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> createTransactionLimit(@RequestBody CategoryLimitDTO limitDTO, @RequestHeader("Authorization") String token) {
         logger.info("Создание лимита транзакции: {}", limitDTO);
         try {
             Long extractedUserId = tokenService.extractUserIdFromToken(token);
             categoryLimitService.createCategoryLimit(limitDTO, extractedUserId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        } catch (RuntimeException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Лимит уже существует.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера");
         }
     }
 

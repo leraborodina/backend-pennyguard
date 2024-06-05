@@ -11,8 +11,9 @@ public class FinancialGoalDTO {
     private Long id;
     private String name;
     private BigDecimal sum;
-    private LocalDateTime startDate; // Change OffsetDateTime to LocalDateTime
-    private Integer endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private Integer monthCount;
     private Long userId;
 
     public Long getId() {
@@ -47,12 +48,20 @@ public class FinancialGoalDTO {
         this.startDate = startDate;
     }
 
-    public Integer getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Integer endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
+    }
+
+    public Integer getMonthCount() {
+        return monthCount;
+    }
+
+    public void setMonthCount(Integer monthCount) {
+        this.monthCount = monthCount;
     }
 
     public Long getUserId() {
