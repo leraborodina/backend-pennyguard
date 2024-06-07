@@ -268,7 +268,7 @@ public class TransactionServiceImpl implements TransactionService {
         for (FinancialGoalDTO financialGoal : userGoals) {
             LocalDateTime goalStartDate = financialGoal.getStartDate(); // LocalDateTime instead of OffsetDateTime
             for (Transaction transaction : transactions) {
-                if (transaction.getCreatedAt().isAfter(goalStartDate)) {
+                if (transaction.getCreatedAt().isAfter(goalStartDate) || transaction.getCreatedAt().equals(goalStartDate) ) {
                     filteredTransactions.add(transaction);
                 }
             }
