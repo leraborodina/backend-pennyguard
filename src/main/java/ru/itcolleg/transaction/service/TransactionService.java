@@ -56,7 +56,7 @@ public interface TransactionService {
      * @return The updated transaction DTO.
      * @throws TransactionNotFoundException If the transaction with the given ID is not found.
      */
-    Optional<TransactionDTO> updateTransaction(TransactionDTO transactionDTO, Long id) throws TransactionNotFoundException;
+    Optional<TransactionDTO> updateTransaction(TransactionDTO transactionDTO, Long id, Long userId) throws TransactionNotFoundException;
 
     /**
      * Получает все транзакции для пользователя.

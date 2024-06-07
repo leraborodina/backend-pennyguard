@@ -138,9 +138,11 @@ public class TransactionRestController {
      */
     @RequiresTokenValidation
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@RequestBody TransactionDTO transactionDTO, @PathVariable Long id) {
+    public ResponseEntity<?> update(@RequestBody TransactionDTO transactionDTO, @PathVariable Long id, @RequestHeader("Authorization") String token) {
         try {
-            Optional<TransactionDTO> updatedTransaction = transactionService.updateTransaction(transactionDTO, id);
+            Long userId = tokenService.extractUserIdFromToken(token);
+
+            Optional<TransactionDTO> updatedTransaction = transactionService.updateTransaction(transactionDTO, id, userId);
             return updatedTransaction.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             logger.error("Error occurred while updating transaction", e);

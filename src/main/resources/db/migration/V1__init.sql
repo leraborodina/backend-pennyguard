@@ -38,24 +38,22 @@ BEGIN
         name NVARCHAR(100) NOT NULL,
         is_default BIT NOT NULL,
         user_id BIGINT,
-        type_id BIGINT NOT NULL,
         CONSTRAINT name_user_id_unique UNIQUE (name, user_id),
         FOREIGN KEY (user_id) REFERENCES [user](id),
-        FOREIGN KEY (type_id) REFERENCES transaction_type(id)
     );
 
     -- Inserting some categories with names in Russian
-    INSERT INTO category (name, is_default, user_id, type_id) VALUES
-    (N'Еда', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Путешествия', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Здоровье', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Красота', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Транспорт', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Развлечения', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Покупки', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Образование', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы')),
-    (N'Банк', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'доходы')),
-    (N'Персональное', 1, NULL, (SELECT id FROM transaction_type WHERE type = N'расходы'));
+    INSERT INTO category (name, is_default, user_id) VALUES
+    (N'Еда', 1, NULL),
+    (N'Путешествия', 1, NULL),
+    (N'Здоровье', 1, NULL),
+    (N'Красота', 1, NULL),
+    (N'Транспорт', 1, NULL),
+    (N'Развлечения', 1, NULL),
+    (N'Покупки', 1, NULL),
+    (N'Образование', 1, NULL),
+    (N'Банк', 1, NULL),
+    (N'Персональное', 1, NULL);
 END;
 
 -- Ensure the category_limit table exists

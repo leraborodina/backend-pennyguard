@@ -39,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
             if (passwordEncoder.matches(password, hashedPassword)) {
                 return true;
             } else {
-                throw new UserLoginCredentialsNotCorrect("Неверный пароль.");
+                throw new UserLoginCredentialsNotCorrect("Неверный пароль");
             }
         } else {
             throw new UserNotFoundException("Пользователь с адресом электронной почты не найден: " + email);

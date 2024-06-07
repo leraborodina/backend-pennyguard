@@ -1,5 +1,6 @@
 package ru.itcolleg.transaction.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.List;
  * Репозиторий для управления сущностями Transaction.
  */
 @Repository
-public interface TransactionRepository extends CrudRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
+public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
 
     /**
      * Finds transactions by user ID.
@@ -33,4 +34,6 @@ public interface TransactionRepository extends CrudRepository<Transaction, Long>
      * @return List of transactions
      */
     List<Transaction> findTransactionsByUserIdAndTypeIdAndRegular(Long userId, Long typeId, Long notRegular);
+
+    List<Transaction> findByRegularTrue();
 }

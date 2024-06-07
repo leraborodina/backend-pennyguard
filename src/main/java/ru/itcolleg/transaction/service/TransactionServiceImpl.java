@@ -84,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Optional<TransactionDTO> updateTransaction(TransactionDTO transactionDTO, Long id) throws TransactionNotFoundException {
+    public Optional<TransactionDTO> updateTransaction(TransactionDTO transactionDTO, Long id, Long userId) throws TransactionNotFoundException {
         logger.info("Начало обновления транзакции");
         Optional<Transaction> transactionOptional = transactionRepository.findById(id);
         if (transactionOptional.isEmpty()) {
@@ -93,6 +93,8 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = transactionOptional.get();
         updateTransactionDetails(transaction, transactionDTO);
         Transaction savedTransaction = transactionRepository.save(transaction);
+
+        handleExpenseNotifications(userId, savedTransaction.getTypeId());
         return Optional.of(transactionMapper.toTransactionDTO(savedTransaction));
     }
 

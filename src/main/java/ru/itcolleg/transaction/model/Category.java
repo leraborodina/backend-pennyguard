@@ -28,11 +28,6 @@ public class Category {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "type_id", nullable = false)
-    private Long typeId; // Storing typeId directly
-
-    // Getters and setters
-
     public Long getId() {
         return id;
     }
@@ -63,13 +58,5 @@ public class Category {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public Long getTypeId() {
-        return typeId;
-    }
-
-    public void setTypeId(Long typeId) {
-        this.typeId = typeId;
     }
 }

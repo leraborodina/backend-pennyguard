@@ -133,7 +133,7 @@ public class CategoryRestController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (DuplicateKeyException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Категория уже существует.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Категория уже существует");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера");
         }
@@ -154,8 +154,10 @@ public class CategoryRestController {
         try {
             Optional<Category> updatedCategory = categoryService.update(category, id);
             return updatedCategory.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-        } catch (IllegalArgumentException e) {
+        }  catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Категория уже существует");
         } catch (Exception e) {
             logger.error("Произошла ошибка при обновлении категории с ID {}: {}", id, category, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера");

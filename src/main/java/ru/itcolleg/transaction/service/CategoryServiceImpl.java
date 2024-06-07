@@ -6,15 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itcolleg.transaction.exception.CategoryNotFoundException;
 import ru.itcolleg.transaction.model.Category;
-import ru.itcolleg.transaction.model.TransactionType;
 import ru.itcolleg.transaction.repository.CategoryRepository;
-import ru.itcolleg.transaction.repository.TransactionTypeRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,12 +26,10 @@ public class CategoryServiceImpl implements CategoryService {
     private static final Logger logger = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     private final CategoryRepository categoryRepository;
-    private final TransactionTypeRepository transactionTypeRepository;
 
     @Autowired
-    public CategoryServiceImpl(CategoryRepository categoryRepository, TransactionTypeRepository transactionTypeRepository) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
-        this.transactionTypeRepository = transactionTypeRepository;
     }
 
 
@@ -52,18 +46,18 @@ public class CategoryServiceImpl implements CategoryService {
             throw new IllegalArgumentException("ID пользователя не может быть пустой");
         }
 
-        Long typeId = category.getTypeId();
-        if (typeId == null) {
-            throw new IllegalArgumentException("Тип категории не может быть пустым");
+        // Check if the category name already exists for the user
+        boolean categoryExists = categoryRepository.existsByNameAndUserId(category.getName(), userId);
+
+        // Check if the category name is a default category
+        boolean isDefaultCategory = categoryRepository.existsByNameAndUserIdAndIsDefault(category.getName(), null, true);
+
+        if (categoryExists || isDefaultCategory) {
+            throw new DuplicateKeyException("Категория уже существует или является стандартной");
         }
 
         try {
-            Optional<TransactionType> transactionTypeOptional = transactionTypeRepository.findById(typeId);
-            TransactionType transactionType = transactionTypeOptional.orElseThrow(() -> new IllegalArgumentException("Тип категории не найден"));
-
             category.setUserId(userId);
-            category.setTypeId(transactionType.getId());
-
             return Optional.of(categoryRepository.save(category));
         } catch (IllegalArgumentException e) {
             logger.error("Ошибка при сохранении категории: {}", e.getMessage());
@@ -92,20 +86,41 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public Optional<Category> update(Category category, Long id) {
         logger.info("Обновляет категорию с указанным идентификатором.");
+
         if (id == null) {
             throw new IllegalArgumentException("ID не может быть пустым");
         }
+
         Optional<Category> existingCategoryOptional = categoryRepository.findById(id);
+
         if (existingCategoryOptional.isEmpty()) {
             throw new CategoryNotFoundException("Категория с идентификатором " + id + " не найдена");
         }
 
         Category existingCategory = existingCategoryOptional.get();
-        existingCategory.setName(category.getName());
-        existingCategory.setTypeId(category.getTypeId());
 
-        return Optional.of(categoryRepository.save(existingCategory));
+        boolean isDefaultCategory = categoryRepository.existsByNameAndUserIdAndIsDefault(category.getName(), null, true);
+        if (isDefaultCategory) {
+            throw new IllegalArgumentException("Нельзя обновить категорию до имени, которое является стандартной категорией");
+        }
+
+        existingCategory.setName(category.getName());
+
+
+        try {
+            return Optional.of(categoryRepository.save(existingCategory));
+        } catch (IllegalArgumentException e) {
+            logger.error("Ошибка при обновлении категории: {}", e.getMessage());
+            throw e; // Re-throw the exception to be handled by the controller
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Ошибка при обновлении категории: {}", e.getMessage());
+            throw new DuplicateKeyException("Категория уже существует", e);
+        } catch (Exception e) {
+            logger.error("Ошибка при обновлении категории: {}", e.getMessage());
+            throw new RuntimeException("Ошибка при обновлении категории", e);
+        }
     }
+
 
     @Override
     @Transactional
