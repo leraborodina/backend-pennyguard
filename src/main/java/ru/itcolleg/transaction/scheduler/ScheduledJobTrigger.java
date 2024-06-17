@@ -10,6 +10,7 @@ import ru.itcolleg.transaction.model.Transaction;
 import ru.itcolleg.transaction.repository.TransactionRepository;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,21 +51,26 @@ public class ScheduledJobTrigger {
     private void processRecurringTransactions(List<Transaction> regularTransactions) {
         // Генерирует повторяющиеся транзакции для каждой регулярной транзакции
         for (Transaction regularTransaction : regularTransactions) {
+            regularTransaction.setRegular(false);
+
             // Рассчитывает дату следующего события
             LocalDateTime nextOccurrence = calculateNextOccurrence(regularTransaction.getCreatedAt());
 
-            // Создает новую транзакцию с теми же данными и датой следующего события
-            Transaction recurringTransaction = new Transaction();
-            recurringTransaction.setCategoryId(regularTransaction.getCategoryId());
-            recurringTransaction.setRegular(regularTransaction.getRegular());
-            recurringTransaction.setUserId(regularTransaction.getUserId());
-            recurringTransaction.setAmount(regularTransaction.getAmount());
-            recurringTransaction.setPurpose(regularTransaction.getPurpose());
-            recurringTransaction.setTypeId(regularTransaction.getTypeId()); // Сохраняет оригинальный тип
-            recurringTransaction.setCreatedAt(nextOccurrence);
+            // Проверяет, совпадает ли следующая дата события с сегодняшней датой
+            if (nextOccurrence.toLocalDate().isEqual(LocalDate.now())) {
+                // Создает новую транзакцию с теми же данными и датой следующего события
+                Transaction recurringTransaction = new Transaction();
+                recurringTransaction.setCategoryId(regularTransaction.getCategoryId());
+                recurringTransaction.setRegular(regularTransaction.getRegular());
+                recurringTransaction.setUserId(regularTransaction.getUserId());
+                recurringTransaction.setAmount(regularTransaction.getAmount());
+                recurringTransaction.setPurpose(regularTransaction.getPurpose());
+                recurringTransaction.setTypeId(regularTransaction.getTypeId()); // Сохраняет оригинальный тип
+                recurringTransaction.setCreatedAt(nextOccurrence);
 
-            // Сохраняет повторяющуюся транзакцию
-            transactionRepository.save(recurringTransaction);
+                // Сохраняет повторяющуюся транзакцию
+                transactionRepository.save(recurringTransaction);
+            }
         }
     }
 
